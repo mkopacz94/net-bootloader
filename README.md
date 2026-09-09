@@ -65,6 +65,13 @@ method names were kept close to the original so the two can be cross-referenced.
     override (needed for rounded corners) and is the one piece here that
     couldn't be checked any way short of a real Windows build - flag it if
     the dropdown behaves oddly.
+  - `Views/MessageDialog.xaml` - a themed modal alert (rounded card, drop shadow,
+    the app's palette) instead of the OS-chrome default `MessageBox`.
+    `MessageDialog.ShowError(title, message)` is the entry point; currently
+    used for one thing - `MainViewModel.FlashAsync` shows it whenever the
+    selected file turns out not to be flashable firmware (invalid/corrupted
+    `.tmfw` package, malformed HEX, or HEX with no data in the device's
+    flash range).
   - `Validation/IntRangeValidationRule.cs` - backs the timeout field's 1-5
     range check; `Themes/Controls.xaml`'s `TextBox` style turns a
     `Validation.HasError` into a red border. `ConnectionView`'s code-behind

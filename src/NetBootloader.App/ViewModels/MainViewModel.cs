@@ -1,6 +1,7 @@
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NetBootloader.App.Views;
 using NetBootloader.Core;
 using NetBootloader.Core.Communication;
 using NetBootloader.Core.Exceptions;
@@ -105,9 +106,18 @@ public sealed partial class MainViewModel : ObservableObject
         {
             Log.StatusText = "Flashing cancelled.";
         }
-        catch (InvalidDataException ex)
+        // Covers every way the selected file can turn out not to be flashable
+        // firmware: a corrupted/wrong-key .tmfw package (InvalidDataException), HEX
+        // content that isn't validly formatted (FormatException - e.g. someone picked
+        // an unrelated file, or the extension lied), or HEX that parses fine but has
+        // no data in this device's flash range (InvalidOperationException).
+        catch (Exception ex) when (ex is InvalidDataException or FormatException or InvalidOperationException)
         {
-            Log.StatusText = $"Error: {ex.Message}";
+            var fileName = string.IsNullOrEmpty(Firmware.HexFilePath)
+                ? "The selected file"
+                : $"\"{Path.GetFileName(Firmware.HexFilePath)}\"";
+            Log.StatusText = "Error: the selected file isn't valid firmware.";
+            MessageDialog.ShowError("Invalid firmware file", $"{fileName} doesn't look like valid firmware.\n\n{ex.Message}");
         }
         catch (VerifyFailException)
         {
