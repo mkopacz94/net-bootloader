@@ -32,9 +32,22 @@ method names were kept close to the original so the two can be cross-referenced.
     operation with `IProgress<FlashProgressReport>` support and
     cancellation, for driving a UI.
 
-- **`src/NetBootloader.App`** - WPF shell: pick a COM port and baud rate,
-  browse for a `.hex` file, flash it with a progress bar and a live packet
-  log (`MainWindow.xaml` / `MainViewModel`).
+- **`src/NetBootloader.App`** - WPF shell, MVVM via
+  [CommunityToolkit.Mvvm](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/)
+  (`[ObservableProperty]`/`[RelayCommand]` source generators instead of
+  hand-rolled base classes). Split by concern rather than one
+  view/viewmodel:
+  - `ViewModels/ConnectionViewModel` + `Views/ConnectionView` - COM port,
+    baud rate, timeout.
+  - `ViewModels/FirmwareViewModel` + `Views/FirmwareView` - `.hex` file
+    picker, checksum/reset options.
+  - `ViewModels/FlashLogViewModel` + `Views/FlashLogView` - progress bar,
+    status text, live packet log.
+  - `ViewModels/MainViewModel` - composition root: owns the three
+    sub-viewmodels and the `Flash`/`Cancel` commands, since those are the
+    only things that need data from more than one of them.
+  - `MainWindow.xaml` just lays the three views out and binds the
+    action buttons.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX
