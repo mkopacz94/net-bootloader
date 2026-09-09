@@ -27,7 +27,7 @@ public static class FirmwarePackage
 {
     private const int NonceSize = 12;
     private const int TagSize = 16;
-    private static readonly byte[] Magic = "NBFW"u8.ToArray();
+    private static readonly byte[] Magic = "TMFW"u8.ToArray();
     private const byte FormatVersion = 1;
 
     // Generated once with a CSPRNG; not derived from anything guessable. Rotating this
