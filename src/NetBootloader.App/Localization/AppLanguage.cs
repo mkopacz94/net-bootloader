@@ -5,4 +5,6 @@ public enum AppLanguage
 {
     English,
     Polish,
+    French,
+    German,
 }

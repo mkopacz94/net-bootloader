@@ -44,6 +44,8 @@ public sealed partial class MainViewModel : ObservableObject
     {
         new LanguageOption(AppLanguage.English, "English", "🇬🇧"),
         new LanguageOption(AppLanguage.Polish, "Polski", "🇵🇱"),
+        new LanguageOption(AppLanguage.French, "Français", "🇫🇷"),
+        new LanguageOption(AppLanguage.German, "Deutsch", "🇩🇪"),
     };
 
     /// <summary>
