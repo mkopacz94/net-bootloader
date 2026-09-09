@@ -1,12 +1,15 @@
 <Application x:Class="NetBootloader.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:NetBootloader.App.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Controls.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:AppLanguageToImageSourceConverter x:Key="AppLanguageToImageSourceConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>
