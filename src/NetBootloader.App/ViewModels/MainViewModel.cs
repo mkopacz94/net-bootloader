@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using NetBootloader.Core;
 using NetBootloader.Core.Communication;
 using NetBootloader.Core.Exceptions;
+using NetBootloader.Core.Security;
 
 namespace NetBootloader.App.ViewModels;
 
@@ -70,12 +71,32 @@ public sealed partial class MainViewModel : ObservableObject
             var flasher = new FirmwareFlasher(client);
 
             var progress = new Progress<FlashProgressReport>(Log.ReportProgress);
-            await flasher.FlashAsync(
-                Firmware.HexFilePath!,
-                Firmware.VerifyChecksum,
-                Firmware.ResetAfterFlash,
-                progress,
-                _cancellationSource.Token);
+
+            // .nbfw packages (from NetBootloader.HexPackager) are decrypted straight
+            // into memory and handed to the flasher as a TextReader - the plaintext
+            // HEX never touches disk. Anything else is treated as a plain HEX file.
+            if (string.Equals(Path.GetExtension(Firmware.HexFilePath), ".nbfw", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.AppendLog("Decrypting firmware package in memory...");
+                var package = await File.ReadAllBytesAsync(Firmware.HexFilePath!, _cancellationSource.Token);
+                var hexContent = FirmwarePackage.Decrypt(package);
+                using var reader = new StringReader(hexContent);
+                await flasher.FlashAsync(
+                    reader,
+                    Firmware.VerifyChecksum,
+                    Firmware.ResetAfterFlash,
+                    progress,
+                    _cancellationSource.Token);
+            }
+            else
+            {
+                await flasher.FlashAsync(
+                    Firmware.HexFilePath!,
+                    Firmware.VerifyChecksum,
+                    Firmware.ResetAfterFlash,
+                    progress,
+                    _cancellationSource.Token);
+            }
 
             Log.StatusText = "Flashing complete. Self-verify OK.";
             Log.ProgressPercent = 100;
@@ -83,6 +104,10 @@ public sealed partial class MainViewModel : ObservableObject
         catch (OperationCanceledException)
         {
             Log.StatusText = "Flashing cancelled.";
+        }
+        catch (InvalidDataException ex)
+        {
+            Log.StatusText = $"Error: {ex.Message}";
         }
         catch (VerifyFailException)
         {

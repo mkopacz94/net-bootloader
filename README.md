@@ -16,6 +16,13 @@ method names were kept close to the original so the two can be cross-referenced.
     `VersionResponse`, `Response`, `MemoryRangeResponse`, `ChecksumResponse`),
     each with a `Pack`/`Unpack` that matches mcbootflash's `protocol.py`
     layout exactly (little-endian, no padding).
+  - `Security/FirmwarePackage.cs` - encrypts/decrypts a `.hex` file's content
+    (AES-256-GCM) into a `.nbfw` package, so a raw HEX file never has to be
+    handed to a client or written to disk in plaintext. Shared by
+    `NetBootloader.HexPackager` (which creates packages) and
+    `NetBootloader.App` (which decrypts one in memory right before
+    flashing). See its doc comment for the threat model this protects
+    against - and doesn't.
   - `Exceptions/` - `BootloaderException` and its subclasses, one per
     bootloader error response code.
   - `Communication/` - `IBootloaderConnection` (mirrors mcbootflash's
@@ -75,16 +82,29 @@ method names were kept close to the original so the two can be cross-referenced.
     doesn't try to grow to fit its entire (potentially huge) contents
     inside that outer scroll.
 
+- **`src/NetBootloader.HexPackager`** - console tool (any OS `NetBootloader.Core`
+  builds on) for creating `.nbfw` packages:
+
+  ```
+  dotnet run --project src/NetBootloader.HexPackager -- encode firmware.hex firmware.nbfw
+  dotnet run --project src/NetBootloader.HexPackager -- decode firmware.nbfw firmware.hex   # local verification only - don't ship the output
+  ```
+
+  Distribute the `.nbfw` file, not the `.hex` file. `NetBootloader.App`'s
+  firmware picker accepts either extension: `.hex` is read as-is, `.nbfw` is
+  decrypted in memory (never written back to disk) right before flashing.
+
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX
-  parser, and chunk alignment/cropping. `BootloaderClientRealCaptureTests`
-  replays byte sequences copied verbatim from real serial captures (see
-  below) through `BootloaderClient` as regression tests.
+  parser, chunk alignment/cropping, and `FirmwarePackage` (round-trip, tamper
+  detection, wrong-key rejection). `BootloaderClientRealCaptureTests` replays
+  byte sequences copied verbatim from real serial captures (see below)
+  through `BootloaderClient` as regression tests.
 
 ## Building
 
 ```
-dotnet build NetBootloader.sln   # Core + tests build on any OS
+dotnet build NetBootloader.sln   # Core, HexPackager, and tests build on any OS
 dotnet test                      # runs the Core test suite
 ```
 

@@ -9,9 +9,9 @@ namespace NetBootloader.Core.HexFile;
 public static class HexFileChunker
 {
     /// <summary>
-    /// Parses <paramref name="hexFilePath"/>, crops it to the bootloader's writable
-    /// memory range, and splits it into appropriately sized, write-size-aligned
-    /// chunks.
+    /// Parses the HEX file at <paramref name="hexFilePath"/>, crops it to the
+    /// bootloader's writable memory range, and splits it into appropriately sized,
+    /// write-size-aligned chunks.
     /// </summary>
     /// <returns>The total number of bytes across all chunks (after alignment padding), and the chunks themselves.</returns>
     /// <exception cref="InvalidOperationException">
@@ -21,7 +21,24 @@ public static class HexFileChunker
     public static (int TotalBytes, IReadOnlyList<FirmwareChunk> Chunks) Chunk(
         string hexFilePath, BootAttributes attrs)
     {
-        var segments = IntelHexParser.Parse(hexFilePath);
+        using var reader = new StreamReader(hexFilePath);
+        return Chunk(reader, attrs);
+    }
+
+    /// <summary>
+    /// Parses HEX content from <paramref name="hexReader"/> - e.g. a <see cref="StringReader"/>
+    /// over content decrypted in memory - crops it to the bootloader's writable memory
+    /// range, and splits it into appropriately sized, write-size-aligned chunks.
+    /// </summary>
+    /// <returns>The total number of bytes across all chunks (after alignment padding), and the chunks themselves.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// If the HEX content has no data within the program memory range, or the
+    /// bootloader's reported packet/write sizes are inconsistent.
+    /// </exception>
+    public static (int TotalBytes, IReadOnlyList<FirmwareChunk> Chunks) Chunk(
+        TextReader hexReader, BootAttributes attrs)
+    {
+        var segments = IntelHexParser.Parse(hexReader);
         var cropped = CropToRange(segments, attrs.MemoryRangeStart, attrs.MemoryRangeEnd);
 
         if (cropped.Sum(s => s.Data.Length) == 0)

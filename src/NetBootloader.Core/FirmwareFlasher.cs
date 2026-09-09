@@ -27,8 +27,8 @@ public sealed class FirmwareFlasher
     }
 
     /// <summary>
-    /// Reads bootloader attributes, erases the program memory area, writes
-    /// <paramref name="hexFilePath"/> in chunks, runs self-verification, and
+    /// Reads bootloader attributes, erases the program memory area, writes the HEX file
+    /// at <paramref name="hexFilePath"/> in chunks, runs self-verification, and
     /// optionally resets the device.
     /// </summary>
     /// <param name="hexFilePath">Path to an Intel HEX file containing application firmware.</param>
@@ -47,12 +47,34 @@ public sealed class FirmwareFlasher
         CancellationToken cancellationToken = default)
     {
         return Task.Run(
-            () => Flash(hexFilePath, verifyChecksum, resetAfterFlash, progress, cancellationToken),
+            () =>
+            {
+                using var reader = new StreamReader(hexFilePath);
+                return Flash(reader, verifyChecksum, resetAfterFlash, progress, cancellationToken);
+            },
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Same as <see cref="FlashAsync(string, bool, bool, IProgress{FlashProgressReport}?, CancellationToken)"/>,
+    /// but reads HEX content from <paramref name="hexReader"/> instead of a file path -
+    /// e.g. a <see cref="StringReader"/> over content decrypted in memory, so the
+    /// plaintext HEX never touches disk.
+    /// </summary>
+    public Task<BootAttributes> FlashAsync(
+        TextReader hexReader,
+        bool verifyChecksum,
+        bool resetAfterFlash,
+        IProgress<FlashProgressReport>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.Run(
+            () => Flash(hexReader, verifyChecksum, resetAfterFlash, progress, cancellationToken),
             cancellationToken);
     }
 
     private BootAttributes Flash(
-        string hexFilePath,
+        TextReader hexReader,
         bool verifyChecksum,
         bool resetAfterFlash,
         IProgress<FlashProgressReport>? progress,
@@ -62,7 +84,7 @@ public sealed class FirmwareFlasher
         progress?.Report(new FlashProgressReport(FlashStage.Handshaking, 0, 0));
         var attrs = _client.GetBootAttributes();
 
-        var (totalBytes, chunks) = HexFileChunker.Chunk(hexFilePath, attrs);
+        var (totalBytes, chunks) = HexFileChunker.Chunk(hexReader, attrs);
 
         EraseProgramMemory(attrs, progress, cancellationToken);
         WriteChunks(chunks, totalBytes, verifyChecksum, progress, cancellationToken);
