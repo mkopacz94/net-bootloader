@@ -18,6 +18,7 @@
                  within its own compact viewport. -->
             <TextBox Text="{Binding LogText, Mode=OneWay}" IsReadOnly="True"
                      Height="220"
+                     VerticalContentAlignment="Top"
                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                      FontFamily="Consolas" TextWrapping="NoWrap" />
         </GroupBox>
