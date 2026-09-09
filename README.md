@@ -48,6 +48,16 @@ method names were kept close to the original so the two can be cross-referenced.
     only things that need data from more than one of them.
   - `MainWindow.xaml` just lays the three views out and binds the
     action buttons.
+  - `Themes/Colors.xaml` + `Themes/Controls.xaml` - the app's visual theme:
+    a light palette (blue `Primary`/pink `Secondary` accents, both with
+    `.MouseOver`/`.Pressed` variants, plus neutrals for background/surface/
+    border/text) and rounded control styles (`Button`, `TextBox`,
+    `ComboBox`, `CheckBox`, `ProgressBar`, and a card-style `GroupBox`)
+    built on it. Merged into `App.xaml`, so they apply everywhere without
+    per-view changes. The `ComboBox` restyle is a full `ControlTemplate`
+    override (needed for rounded corners) and is the one piece here that
+    couldn't be checked any way short of a real Windows build - flag it if
+    the dropdown behaves oddly.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX

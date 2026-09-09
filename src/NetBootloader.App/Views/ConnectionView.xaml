@@ -6,7 +6,7 @@
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ConnectionViewModel}">
-    <GroupBox Header="Connection" Padding="8">
+    <GroupBox Header="Connection">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

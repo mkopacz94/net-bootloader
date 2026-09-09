@@ -8,7 +8,7 @@
         <vm:MainViewModel />
     </Window.DataContext>
 
-    <Grid Margin="12">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -16,13 +16,13 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <views:ConnectionView Grid.Row="0" DataContext="{Binding Connection}" Margin="0,0,0,8" />
+        <views:ConnectionView Grid.Row="0" DataContext="{Binding Connection}" Margin="0,0,0,16" />
 
-        <views:FirmwareView Grid.Row="1" DataContext="{Binding Firmware}" Margin="0,0,0,8" />
+        <views:FirmwareView Grid.Row="1" DataContext="{Binding Firmware}" Margin="0,0,0,16" />
 
         <!-- Actions row - stays bound to MainViewModel, since Flash/Cancel need data
              from both Connection and Firmware. -->
-        <Grid Grid.Row="2" Margin="0,0,0,8">
+        <Grid Grid.Row="2" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -30,9 +30,9 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" Content="Flash" Command="{Binding FlashCommand}"
-                    Padding="16,4" FontWeight="Bold" />
+                    Style="{StaticResource PrimaryButtonStyle}" />
             <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
-                    Padding="16,4" Margin="8,0,0,0" />
+                    Style="{StaticResource SecondaryButtonStyle}" Margin="10,0,0,0" />
         </Grid>
 
         <views:FlashLogView Grid.Row="3" DataContext="{Binding Log}" />

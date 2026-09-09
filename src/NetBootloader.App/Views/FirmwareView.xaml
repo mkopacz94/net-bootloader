@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:FirmwareViewModel}">
     <StackPanel>
-        <GroupBox Header="Firmware" Padding="8" Margin="0,0,0,8">
+        <GroupBox Header="Firmware" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
