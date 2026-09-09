@@ -8,7 +8,7 @@ namespace NetBootloader.App.ViewModels;
 public sealed partial class FirmwareViewModel : ObservableObject
 {
     /// <summary>
-    /// Path to either a plain Intel HEX file, or an encrypted <c>.nbfw</c> package
+    /// Path to either a plain Intel HEX file, or an encrypted <c>.tmfw</c> package
     /// produced by <c>NetBootloader.HexPackager</c> - MainViewModel tells which is
     /// which by extension and decrypts a package in memory before flashing.
     /// </summary>
@@ -26,9 +26,9 @@ public sealed partial class FirmwareViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Firmware files (*.hex;*.nbfw)|*.hex;*.nbfw|" +
+            Filter = "Firmware files (*.hex;*.tmfw)|*.hex;*.tmfw|" +
                      "Intel HEX files (*.hex)|*.hex|" +
-                     "Encrypted firmware packages (*.nbfw)|*.nbfw|" +
+                     "Encrypted firmware packages (*.tmfw)|*.tmfw|" +
                      "All files (*.*)|*.*",
             Title = "Select firmware image",
         };

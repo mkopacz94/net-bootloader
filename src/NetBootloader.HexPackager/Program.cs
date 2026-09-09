@@ -68,7 +68,7 @@ public static class Program
         Console.WriteLine("NetBootloader.HexPackager - encrypts firmware .hex files for distribution.");
         Console.WriteLine();
         Console.WriteLine("Usage:");
-        Console.WriteLine("  NetBootloader.HexPackager encode <input.hex> <output.nbfw>");
-        Console.WriteLine("  NetBootloader.HexPackager decode <input.nbfw> <output.hex>   (local verification only)");
+        Console.WriteLine("  NetBootloader.HexPackager encode <input.hex> <output.tmfw>");
+        Console.WriteLine("  NetBootloader.HexPackager decode <input.tmfw> <output.hex>   (local verification only)");
     }
 }

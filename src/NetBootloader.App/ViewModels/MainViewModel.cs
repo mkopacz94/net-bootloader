@@ -72,10 +72,10 @@ public sealed partial class MainViewModel : ObservableObject
 
             var progress = new Progress<FlashProgressReport>(Log.ReportProgress);
 
-            // .nbfw packages (from NetBootloader.HexPackager) are decrypted straight
+            // .tmfw packages (from NetBootloader.HexPackager) are decrypted straight
             // into memory and handed to the flasher as a TextReader - the plaintext
             // HEX never touches disk. Anything else is treated as a plain HEX file.
-            if (string.Equals(Path.GetExtension(Firmware.HexFilePath), ".nbfw", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(Path.GetExtension(Firmware.HexFilePath), ".tmfw", StringComparison.OrdinalIgnoreCase))
             {
                 Log.AppendLog("Decrypting firmware package in memory...");
                 var package = await File.ReadAllBytesAsync(Firmware.HexFilePath!, _cancellationSource.Token);
