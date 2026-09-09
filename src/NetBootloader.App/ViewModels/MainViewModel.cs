@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NetBootloader.App.Views;
@@ -42,11 +43,14 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     private bool _isBusy;
 
+    private static readonly string[] SupportedFirmwareExtensions = { ".hex", ".tmfw" };
+
     private bool CanFlash() =>
         !IsBusy
         && !string.IsNullOrWhiteSpace(Connection.SelectedPort)
         && !string.IsNullOrWhiteSpace(Firmware.HexFilePath)
-        && File.Exists(Firmware.HexFilePath);
+        && File.Exists(Firmware.HexFilePath)
+        && SupportedFirmwareExtensions.Contains(Path.GetExtension(Firmware.HexFilePath), StringComparer.OrdinalIgnoreCase);
 
     [RelayCommand(CanExecute = nameof(CanFlash))]
     private async Task FlashAsync()
@@ -57,6 +61,11 @@ public sealed partial class MainViewModel : ObservableObject
 
         try
         {
+            // Load (and, for a package, decrypt) the firmware before touching the
+            // serial port at all - no point opening a connection to hardware if the
+            // file turns out not to be usable.
+            var hexContent = await LoadHexContentAsync(Firmware.HexFilePath!, _cancellationSource.Token);
+
             Log.StatusText = $"Connecting to {Connection.SelectedPort}...";
             using var connection = new SerialBootloaderConnection(
                 Connection.SelectedPort!, Connection.SelectedBaudRate, Connection.TimeoutSeconds * 1000);
@@ -73,31 +82,13 @@ public sealed partial class MainViewModel : ObservableObject
 
             var progress = new Progress<FlashProgressReport>(Log.ReportProgress);
 
-            // .tmfw packages (from NetBootloader.HexPackager) are decrypted straight
-            // into memory and handed to the flasher as a TextReader - the plaintext
-            // HEX never touches disk. Anything else is treated as a plain HEX file.
-            if (string.Equals(Path.GetExtension(Firmware.HexFilePath), ".tmfw", StringComparison.OrdinalIgnoreCase))
-            {
-                Log.AppendLog("Decrypting firmware package in memory...");
-                var package = await File.ReadAllBytesAsync(Firmware.HexFilePath!, _cancellationSource.Token);
-                var hexContent = FirmwarePackage.Decrypt(package);
-                using var reader = new StringReader(hexContent);
-                await flasher.FlashAsync(
-                    reader,
-                    Firmware.VerifyChecksum,
-                    Firmware.ResetAfterFlash,
-                    progress,
-                    _cancellationSource.Token);
-            }
-            else
-            {
-                await flasher.FlashAsync(
-                    Firmware.HexFilePath!,
-                    Firmware.VerifyChecksum,
-                    Firmware.ResetAfterFlash,
-                    progress,
-                    _cancellationSource.Token);
-            }
+            using var reader = new StringReader(hexContent);
+            await flasher.FlashAsync(
+                reader,
+                Firmware.VerifyChecksum,
+                Firmware.ResetAfterFlash,
+                progress,
+                _cancellationSource.Token);
 
             Log.StatusText = "Flashing complete. Self-verify OK.";
             Log.ProgressPercent = 100;
@@ -137,6 +128,33 @@ public sealed partial class MainViewModel : ObservableObject
             _cancellationSource?.Dispose();
             _cancellationSource = null;
         }
+    }
+
+    /// <summary>
+    /// Loads a firmware file's HEX content by extension: <c>.tmfw</c> is read as bytes
+    /// and decrypted in memory (the plaintext HEX never touches disk); <c>.hex</c> is
+    /// read as-is. Anything else is rejected outright, rather than silently falling
+    /// through to being treated as plain HEX and only failing later once it's parsed.
+    /// </summary>
+    /// <exception cref="InvalidDataException">If the extension isn't <c>.hex</c> or <c>.tmfw</c>.</exception>
+    private async Task<string> LoadHexContentAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var extension = Path.GetExtension(filePath);
+
+        if (string.Equals(extension, ".tmfw", StringComparison.OrdinalIgnoreCase))
+        {
+            Log.AppendLog("Decrypting firmware package in memory...");
+            var package = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            return FirmwarePackage.Decrypt(package);
+        }
+
+        if (string.Equals(extension, ".hex", StringComparison.OrdinalIgnoreCase))
+        {
+            return await File.ReadAllTextAsync(filePath, cancellationToken);
+        }
+
+        throw new InvalidDataException(
+            $"Unsupported firmware file type \"{extension}\" - expected .hex or .tmfw.");
     }
 
     [RelayCommand(CanExecute = nameof(IsBusy))]
