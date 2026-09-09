@@ -1,0 +1,12 @@
+## .NET
+bin/
+obj/
+*.user
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.suo
+
+## OS cruft
+.DS_Store
