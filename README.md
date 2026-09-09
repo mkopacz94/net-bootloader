@@ -65,9 +65,15 @@ method names were kept close to the original so the two can be cross-referenced.
     all.
   - Layout is responsive rather than fixed-pixel: `ConnectionView` and the
     options row in `FirmwareView` use `WrapPanel` so field groups drop to
-    their own line instead of clipping when the window narrows;
-    `FlashLogView`'s log panel and `MainWindow`'s row grid already stretch
-    to fill available space.
+    their own line instead of clipping when the window narrows.
+    `MainWindow`'s content is one `StackPanel` inside a `ScrollViewer`
+    (`MinHeight`/`MinWidth` down to 360x480 for small screens) rather than
+    a row grid with a star-sized log row - a `Grid` given unbounded height
+    by a `ScrollViewer` collapses star rows to zero, which is exactly the
+    "log disappears at minimum size" bug this replaced. `FlashLogView`'s
+    log `TextBox` keeps a fixed `Height` with its own scrollbar so it
+    doesn't try to grow to fit its entire (potentially huge) contents
+    inside that outer scroll.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX

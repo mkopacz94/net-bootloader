@@ -6,21 +6,20 @@
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:FlashLogViewModel}">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <StackPanel>
+        <ProgressBar Value="{Binding ProgressPercent, Mode=OneWay}" Minimum="0" Maximum="100" />
+        <TextBlock Text="{Binding StatusText}" Margin="0,4,0,12" />
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,8">
-            <ProgressBar Value="{Binding ProgressPercent, Mode=OneWay}" Minimum="0" Maximum="100" />
-            <TextBlock Text="{Binding StatusText}" Margin="0,4,0,0" />
-        </StackPanel>
-
-        <GroupBox Grid.Row="1" Header="Log">
+        <GroupBox Header="Log">
+            <!-- Fixed Height, not Auto: this view now lives inside MainWindow's
+                 ScrollViewer, which hands its content unbounded height. Without an
+                 explicit bound here, this TextBox (which can hold thousands of lines
+                 for a full flash) would grow to fit all of them instead of scrolling
+                 within its own compact viewport. -->
             <TextBox Text="{Binding LogText, Mode=OneWay}" IsReadOnly="True"
+                     Height="220"
                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                      FontFamily="Consolas" TextWrapping="NoWrap" />
         </GroupBox>
-    </Grid>
+    </StackPanel>
 </UserControl>

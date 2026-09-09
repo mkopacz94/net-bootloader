@@ -3,41 +3,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
         xmlns:views="clr-namespace:NetBootloader.App.Views"
-        Title="Net Bootloader" Height="720" Width="720" MinHeight="620" MinWidth="600">
+        Title="Net Bootloader" Height="720" Width="720" MinHeight="360" MinWidth="480">
     <Window.DataContext>
         <vm:MainViewModel />
     </Window.DataContext>
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <!-- MinHeight is a floor so the log card can't be squeezed to nothing at
-                 the window's smallest size - Window.MinHeight above is set to leave
-                 room for it on top of the Auto rows. -->
-            <RowDefinition Height="*" MinHeight="140" />
-        </Grid.RowDefinitions>
+    <!-- Everything scrolls as one column instead of the window enforcing a tall
+         minimum height, so the app stays usable on small screens (laptops, small
+         external displays) where that much vertical space isn't a given. The log's
+         own TextBox (FlashLogView) keeps a fixed height and its own scrollbar, so it
+         doesn't try to grow to fit its entire (potentially huge) contents here. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="20">
+            <views:ConnectionView DataContext="{Binding Connection}" Margin="0,0,0,16" />
 
-        <views:ConnectionView Grid.Row="0" DataContext="{Binding Connection}" Margin="0,0,0,16" />
+            <views:FirmwareView DataContext="{Binding Firmware}" Margin="0,0,0,16" />
 
-        <views:FirmwareView Grid.Row="1" DataContext="{Binding Firmware}" Margin="0,0,0,16" />
+            <!-- Actions row - stays bound to MainViewModel, since Flash/Cancel need data
+                 from both Connection and Firmware. -->
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-        <!-- Actions row - stays bound to MainViewModel, since Flash/Cancel need data
-             from both Connection and Firmware. -->
-        <Grid Grid.Row="2" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="Flash" Command="{Binding FlashCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" Margin="10,0,0,0" />
+            </Grid>
 
-            <Button Grid.Column="0" Content="Flash" Command="{Binding FlashCommand}"
-                    Style="{StaticResource PrimaryButtonStyle}" />
-            <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}" Margin="10,0,0,0" />
-        </Grid>
-
-        <views:FlashLogView Grid.Row="3" DataContext="{Binding Log}" />
-    </Grid>
+            <views:FlashLogView DataContext="{Binding Log}" />
+        </StackPanel>
+    </ScrollViewer>
 </Window>
