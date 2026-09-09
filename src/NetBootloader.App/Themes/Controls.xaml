@@ -383,14 +383,19 @@
                         <Border.Effect>
                             <DropShadowEffect Color="#1a1f36" BlurRadius="16" ShadowDepth="2" Opacity="0.06" />
                         </Border.Effect>
-                        <StackPanel>
-                            <TextBlock Text="{TemplateBinding Header}"
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       Text="{TemplateBinding Header}"
                                        FontWeight="SemiBold"
                                        FontSize="13"
                                        Foreground="{StaticResource Brush.FontDark}"
                                        Margin="16,14,16,8" />
-                            <ContentPresenter Margin="{TemplateBinding Padding}" />
-                        </StackPanel>
+                            <ContentPresenter Grid.Row="1" Margin="{TemplateBinding Padding}" />
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
