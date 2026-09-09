@@ -4,13 +4,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
+             xmlns:loc="clr-namespace:NetBootloader.App.Localization"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:FlashLogViewModel}">
     <StackPanel>
         <ProgressBar Value="{Binding ProgressPercent, Mode=OneWay}" Minimum="0" Maximum="100" />
         <TextBlock Text="{Binding StatusText}" Margin="0,4,0,12" />
 
-        <GroupBox Header="Log">
+        <GroupBox Header="{Binding Source={x:Static loc:Strings.Instance}, Path=LogHeader}">
             <!-- Fixed Height, not Auto: this view now lives inside MainWindow's
                  ScrollViewer, which hands its content unbounded height. Without an
                  explicit bound here, this TextBox (which can hold thousands of lines

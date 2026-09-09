@@ -5,29 +5,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
              xmlns:validation="clr-namespace:NetBootloader.App.Validation"
+             xmlns:loc="clr-namespace:NetBootloader.App.Localization"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ConnectionViewModel}">
-    <GroupBox Header="Connection">
+    <GroupBox Header="{Binding Source={x:Static loc:Strings.Instance}, Path=ConnectionHeader}">
         <!-- WrapPanel rather than a fixed-column Grid: each field group keeps a
              sensible natural width and wraps onto its own line if the window gets too
              narrow to fit them side by side, instead of clipping or overlapping. -->
         <WrapPanel Orientation="Horizontal">
             <StackPanel Orientation="Horizontal" Margin="0,0,20,8">
-                <TextBlock Text="Port:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Source={x:Static loc:Strings.Instance}, Path=PortLabel}"
+                           VerticalAlignment="Center" Margin="0,0,6,0" />
                 <ComboBox Width="140" ItemsSource="{Binding AvailablePorts}"
                           SelectedItem="{Binding SelectedPort}" VerticalAlignment="Center" />
-                <Button Content="Refresh" Command="{Binding RefreshPortsCommand}"
+                <Button Content="{Binding Source={x:Static loc:Strings.Instance}, Path=RefreshButton}"
+                        Command="{Binding RefreshPortsCommand}"
                         Margin="6,0,0,0" Padding="8,2" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="0,0,20,8">
-                <TextBlock Text="Baud rate:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Source={x:Static loc:Strings.Instance}, Path=BaudRateLabel}"
+                           VerticalAlignment="Center" Margin="0,0,6,0" />
                 <ComboBox Width="120" ItemsSource="{Binding BaudRates}"
                           SelectedItem="{Binding SelectedBaudRate}" IsEditable="True" VerticalAlignment="Center" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                <TextBlock Text="Timeout (s):" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Source={x:Static loc:Strings.Instance}, Path=TimeoutLabel}"
+                           VerticalAlignment="Center" Margin="0,0,6,0" />
                 <!-- 1-5 whole seconds only: MaxLength plus the Preview/Pasting
                      handlers in the code-behind block anything but a single digit from
                      reaching the box; the ValidationRule catches the remaining

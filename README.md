@@ -72,6 +72,18 @@ method names were kept close to the original so the two can be cross-referenced.
     selected file turns out not to be flashable firmware (invalid/corrupted
     `.tmfw` package, malformed HEX, or HEX with no data in the device's
     flash range).
+  - `Localization/Strings.cs` - English and Polish UI text as a singleton
+    (`Strings.Instance`), bound directly from XAML
+    (`{Binding Source={x:Static loc:Strings.Instance}, Path=ConnectionHeader}`).
+    Switching `Strings.Instance.Language` (via the picker in the top-right
+    of `MainWindow`) updates every bound label live - no restart, no
+    `.resx`/satellite-assembly machinery, deliberately, given the app's
+    size. Static text is a property; text needing arguments (a port name, a
+    byte count, an exception message) is a method, since bindings can't
+    pass arguments. Every key is checked against both languages by hand
+    (see commit history) - a missing translation would otherwise only
+    surface as a `KeyNotFoundException` the first time that string, in that
+    language, was actually displayed.
   - `Validation/IntRangeValidationRule.cs` - backs the timeout field's 1-5
     range check; `Themes/Controls.xaml`'s `TextBox` style turns a
     `Validation.HasError` into a red border. `ConnectionView`'s code-behind

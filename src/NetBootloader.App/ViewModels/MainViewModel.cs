@@ -1,7 +1,9 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using NetBootloader.App.Localization;
 using NetBootloader.App.Views;
 using NetBootloader.Core;
 using NetBootloader.Core.Communication;
@@ -38,6 +40,32 @@ public sealed partial class MainViewModel : ObservableObject
 
     public FlashLogViewModel Log { get; }
 
+    public ObservableCollection<LanguageOption> AvailableLanguages { get; } = new()
+    {
+        new LanguageOption(AppLanguage.English, "English"),
+        new LanguageOption(AppLanguage.Polish, "Polski"),
+    };
+
+    /// <summary>
+    /// Thin wrapper around <see cref="Strings.Language"/> so the language picker's
+    /// SelectedItem binding has something to read/write - the actual UI text lives on
+    /// the Strings singleton itself and updates live via its own PropertyChanged.
+    /// </summary>
+    public LanguageOption SelectedLanguage
+    {
+        get => AvailableLanguages.First(language => language.Value == Strings.Instance.Language);
+        set
+        {
+            if (value.Value == Strings.Instance.Language)
+            {
+                return;
+            }
+
+            Strings.Instance.Language = value.Value;
+            OnPropertyChanged();
+        }
+    }
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FlashCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
@@ -66,7 +94,7 @@ public sealed partial class MainViewModel : ObservableObject
             // file turns out not to be usable.
             var hexContent = await LoadHexContentAsync(Firmware.HexFilePath!, _cancellationSource.Token);
 
-            Log.StatusText = $"Connecting to {Connection.SelectedPort}...";
+            Log.StatusText = Strings.Instance.StatusConnectingTo(Connection.SelectedPort!);
             using var connection = new SerialBootloaderConnection(
                 Connection.SelectedPort!, Connection.SelectedBaudRate, Connection.TimeoutSeconds * 1000);
 
@@ -90,12 +118,12 @@ public sealed partial class MainViewModel : ObservableObject
                 progress,
                 _cancellationSource.Token);
 
-            Log.StatusText = "Flashing complete. Self-verify OK.";
+            Log.StatusText = Strings.Instance.StatusFlashComplete;
             Log.ProgressPercent = 100;
         }
         catch (OperationCanceledException)
         {
-            Log.StatusText = "Flashing cancelled.";
+            Log.StatusText = Strings.Instance.StatusFlashCancelled;
         }
         // Covers every way the selected file can turn out not to be flashable
         // firmware: a corrupted/wrong-key .tmfw package (InvalidDataException), HEX
@@ -105,22 +133,24 @@ public sealed partial class MainViewModel : ObservableObject
         catch (Exception ex) when (ex is InvalidDataException or FormatException or InvalidOperationException)
         {
             var fileName = string.IsNullOrEmpty(Firmware.HexFilePath)
-                ? "The selected file"
+                ? Strings.Instance.SelectedFileFallback
                 : $"\"{Path.GetFileName(Firmware.HexFilePath)}\"";
-            Log.StatusText = "Error: the selected file isn't valid firmware.";
-            MessageDialog.ShowError("Invalid firmware file", $"{fileName} doesn't look like valid firmware.\n\n{ex.Message}");
+            Log.StatusText = Strings.Instance.StatusInvalidFirmwareFile;
+            MessageDialog.ShowError(
+                Strings.Instance.InvalidFirmwareDialogTitle,
+                Strings.Instance.InvalidFirmwareDialogMessage(fileName, ex.Message));
         }
         catch (VerifyFailException)
         {
-            Log.StatusText = "Error: flashing completed, but the bootloader reports no bootable application.";
+            Log.StatusText = Strings.Instance.StatusVerifyFailed;
         }
         catch (BootloaderException ex)
         {
-            Log.StatusText = $"Error: {ex.Message}";
+            Log.StatusText = Strings.Instance.StatusError(ex.Message);
         }
         catch (Exception ex) when (ex is IOException or TimeoutException)
         {
-            Log.StatusText = $"Connection error: {ex.Message}";
+            Log.StatusText = Strings.Instance.StatusConnectionError(ex.Message);
         }
         finally
         {
@@ -143,7 +173,7 @@ public sealed partial class MainViewModel : ObservableObject
 
         if (string.Equals(extension, ".tmfw", StringComparison.OrdinalIgnoreCase))
         {
-            Log.AppendLog("Decrypting firmware package in memory...");
+            Log.AppendLog(Strings.Instance.StatusDecryptingPackage);
             var package = await File.ReadAllBytesAsync(filePath, cancellationToken);
             return FirmwarePackage.Decrypt(package);
         }
@@ -153,8 +183,7 @@ public sealed partial class MainViewModel : ObservableObject
             return await File.ReadAllTextAsync(filePath, cancellationToken);
         }
 
-        throw new InvalidDataException(
-            $"Unsupported firmware file type \"{extension}\" - expected .hex or .tmfw.");
+        throw new InvalidDataException(Strings.Instance.UnsupportedFirmwareFileType(extension));
     }
 
     [RelayCommand(CanExecute = nameof(IsBusy))]

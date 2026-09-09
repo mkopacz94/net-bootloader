@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using NetBootloader.App.Localization;
 
 namespace NetBootloader.App.ViewModels;
 
@@ -24,13 +25,14 @@ public sealed partial class FirmwareViewModel : ObservableObject
     [RelayCommand]
     private void BrowseHexFile()
     {
+        var strings = Strings.Instance;
         var dialog = new OpenFileDialog
         {
-            Filter = "Firmware files (*.hex;*.tmfw)|*.hex;*.tmfw|" +
-                     "Intel HEX files (*.hex)|*.hex|" +
-                     "Encrypted firmware packages (*.tmfw)|*.tmfw|" +
-                     "All files (*.*)|*.*",
-            Title = "Select firmware image",
+            Filter = $"{strings.FirmwareFilesFilterLabel} (*.hex;*.tmfw)|*.hex;*.tmfw|" +
+                     $"{strings.HexFilesFilterLabel} (*.hex)|*.hex|" +
+                     $"{strings.PackageFilesFilterLabel} (*.tmfw)|*.tmfw|" +
+                     $"{strings.AllFilesFilterLabel} (*.*)|*.*",
+            Title = strings.SelectFirmwareDialogTitle,
         };
 
         if (dialog.ShowDialog() == true)

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Controls;
+using NetBootloader.App.Localization;
 
 namespace NetBootloader.App.Validation;
 
@@ -21,7 +22,7 @@ public sealed class IntRangeValidationRule : ValidationRule
 
         if (!int.TryParse(text, NumberStyles.None, cultureInfo, out var parsed) || parsed < Min || parsed > Max)
         {
-            return new ValidationResult(false, $"Enter a whole number from {Min} to {Max}.");
+            return new ValidationResult(false, Strings.Instance.ValidationRangeError(Min, Max));
         }
 
         return ValidationResult.ValidResult;

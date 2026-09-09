@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
         xmlns:views="clr-namespace:NetBootloader.App.Views"
+        xmlns:loc="clr-namespace:NetBootloader.App.Localization"
         Title="Net Bootloader" Height="720" Width="720" MinHeight="360" MinWidth="480">
     <Window.DataContext>
         <vm:MainViewModel />
@@ -15,6 +16,16 @@
          doesn't try to grow to fit its entire (potentially huge) contents here. -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20">
+            <!-- Language picker: bound to Localization.Strings.Instance directly (not
+                 the window's own DataContext), so it lives independently of anything
+                 the rest of the app is doing. -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,12">
+                <TextBlock Text="{Binding Source={x:Static loc:Strings.Instance}, Path=LanguageLabel}"
+                           VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox Width="110" ItemsSource="{Binding AvailableLanguages}"
+                          SelectedItem="{Binding SelectedLanguage}" DisplayMemberPath="DisplayName" />
+            </StackPanel>
+
             <views:ConnectionView DataContext="{Binding Connection}" Margin="0,0,0,16" />
 
             <views:FirmwareView DataContext="{Binding Firmware}" Margin="0,0,0,16" />
@@ -28,9 +39,11 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="Flash" Command="{Binding FlashCommand}"
+                <Button Grid.Column="0" Content="{Binding Source={x:Static loc:Strings.Instance}, Path=FlashButton}"
+                        Command="{Binding FlashCommand}"
                         Style="{StaticResource PrimaryButtonStyle}" />
-                <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
+                <Button Grid.Column="1" Content="{Binding Source={x:Static loc:Strings.Instance}, Path=CancelButton}"
+                        Command="{Binding CancelCommand}"
                         Style="{StaticResource SecondaryButtonStyle}" Margin="10,0,0,0" />
             </Grid>
 

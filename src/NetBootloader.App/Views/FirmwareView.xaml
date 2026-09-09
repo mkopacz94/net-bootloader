@@ -4,10 +4,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
+             xmlns:loc="clr-namespace:NetBootloader.App.Localization"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:FirmwareViewModel}">
     <StackPanel>
-        <GroupBox Header="Firmware" Margin="0,0,0,16">
+        <GroupBox Header="{Binding Source={x:Static loc:Strings.Instance}, Path=FirmwareHeader}" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -15,7 +16,8 @@
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding HexFilePath, UpdateSourceTrigger=PropertyChanged}"
                          VerticalAlignment="Center" IsReadOnly="True" />
-                <Button Grid.Column="1" Content="Browse..." Command="{Binding BrowseHexFileCommand}"
+                <Button Grid.Column="1" Content="{Binding Source={x:Static loc:Strings.Instance}, Path=BrowseButton}"
+                        Command="{Binding BrowseHexFileCommand}"
                         Margin="6,0,0,0" Padding="8,2" />
             </Grid>
         </GroupBox>
@@ -23,9 +25,11 @@
         <!-- WrapPanel so the two options drop to their own line rather than clipping
              or overlapping when the window is narrow. -->
         <WrapPanel Orientation="Horizontal">
-            <CheckBox Content="Verify checksum after each write" IsChecked="{Binding VerifyChecksum}"
+            <CheckBox Content="{Binding Source={x:Static loc:Strings.Instance}, Path=VerifyChecksumOption}"
+                      IsChecked="{Binding VerifyChecksum}"
                       Margin="0,0,20,8" VerticalAlignment="Center" />
-            <CheckBox Content="Reset device after flashing" IsChecked="{Binding ResetAfterFlash}"
+            <CheckBox Content="{Binding Source={x:Static loc:Strings.Instance}, Path=ResetAfterFlashOption}"
+                      IsChecked="{Binding ResetAfterFlash}"
                       Margin="0,0,0,8" VerticalAlignment="Center" />
         </WrapPanel>
     </StackPanel>

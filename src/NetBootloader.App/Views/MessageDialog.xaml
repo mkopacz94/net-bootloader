@@ -1,6 +1,7 @@
 <Window x:Class="NetBootloader.App.Views.MessageDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:NetBootloader.App.Localization"
         Title="Net Bootloader"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -33,7 +34,9 @@
 
             <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap" Margin="0,0,0,20" />
 
-            <Button x:Name="OkButton" Content="OK" Click="OkButton_Click"
+            <Button x:Name="OkButton"
+                    Content="{Binding Source={x:Static loc:Strings.Instance}, Path=OkButton}"
+                    Click="OkButton_Click"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HorizontalAlignment="Right" MinWidth="88" />
         </StackPanel>

@@ -1,5 +1,6 @@
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NetBootloader.App.Localization;
 using NetBootloader.Core;
 
 namespace NetBootloader.App.ViewModels;
@@ -13,7 +14,7 @@ public sealed partial class FlashLogViewModel : ObservableObject
     private double _progressPercent;
 
     [ObservableProperty]
-    private string _statusText = "Ready.";
+    private string _statusText = Strings.Instance.StatusReady;
 
     [ObservableProperty]
     private string _logText = "";
@@ -24,7 +25,7 @@ public sealed partial class FlashLogViewModel : ObservableObject
         _log.Clear();
         LogText = "";
         ProgressPercent = 0;
-        StatusText = "Ready.";
+        StatusText = Strings.Instance.StatusReady;
     }
 
     /// <summary>Appends one packet-trace line, as forwarded from <see cref="BootloaderClient.DebugLog"/>.</summary>
@@ -37,13 +38,14 @@ public sealed partial class FlashLogViewModel : ObservableObject
     /// <summary>Updates status text and the progress bar from a <see cref="FirmwareFlasher"/> progress report.</summary>
     public void ReportProgress(FlashProgressReport report)
     {
+        var strings = Strings.Instance;
         StatusText = report.Stage switch
         {
-            FlashStage.Handshaking => "Reading bootloader attributes...",
-            FlashStage.Erasing => $"Erasing program memory... {FormatBytes(report.BytesDone)} / {FormatBytes(report.BytesTotal)}",
-            FlashStage.Writing => $"Writing firmware... {FormatBytes(report.BytesDone)} / {FormatBytes(report.BytesTotal)}",
-            FlashStage.SelfVerifying => "Running self-verification...",
-            FlashStage.Resetting => "Resetting device...",
+            FlashStage.Handshaking => strings.StatusReadingBootAttrs,
+            FlashStage.Erasing => strings.StatusErasing(FormatBytes(report.BytesDone), FormatBytes(report.BytesTotal)),
+            FlashStage.Writing => strings.StatusWriting(FormatBytes(report.BytesDone), FormatBytes(report.BytesTotal)),
+            FlashStage.SelfVerifying => strings.StatusSelfVerifying,
+            FlashStage.Resetting => strings.StatusResetting,
             _ => StatusText,
         };
 
