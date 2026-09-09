@@ -16,7 +16,7 @@ public sealed partial class ConnectionViewModel : ObservableObject
         AvailablePorts = new ObservableCollection<string>();
         BaudRates = new ObservableCollection<int>(CommonBaudRates);
         SelectedBaudRate = 460800;
-        TimeoutSeconds = 1.0;
+        TimeoutSeconds = 1;
         RefreshPorts();
     }
 
@@ -30,8 +30,9 @@ public sealed partial class ConnectionViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedBaudRate;
 
+    /// <summary>Serial read timeout, in whole seconds. Valid range is 1-5, enforced by the view's binding.</summary>
     [ObservableProperty]
-    private double _timeoutSeconds;
+    private int _timeoutSeconds;
 
     [RelayCommand]
     private void RefreshPorts()

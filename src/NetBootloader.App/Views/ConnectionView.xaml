@@ -4,32 +4,48 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
+             xmlns:validation="clr-namespace:NetBootloader.App.Validation"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ConnectionViewModel}">
     <GroupBox Header="Connection">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="140" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="120" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="80" />
-            </Grid.ColumnDefinitions>
+        <!-- WrapPanel rather than a fixed-column Grid: each field group keeps a
+             sensible natural width and wraps onto its own line if the window gets too
+             narrow to fit them side by side, instead of clipping or overlapping. -->
+        <WrapPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="0,0,20,8">
+                <TextBlock Text="Port:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox Width="140" ItemsSource="{Binding AvailablePorts}"
+                          SelectedItem="{Binding SelectedPort}" VerticalAlignment="Center" />
+                <Button Content="Refresh" Command="{Binding RefreshPortsCommand}"
+                        Margin="6,0,0,0" Padding="8,2" />
+            </StackPanel>
 
-            <TextBlock Grid.Column="0" Text="Port:" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailablePorts}"
-                      SelectedItem="{Binding SelectedPort}" VerticalAlignment="Center" />
-            <Button Grid.Column="2" Content="Refresh" Command="{Binding RefreshPortsCommand}"
-                    Margin="6,0,16,0" Padding="8,2" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,20,8">
+                <TextBlock Text="Baud rate:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox Width="120" ItemsSource="{Binding BaudRates}"
+                          SelectedItem="{Binding SelectedBaudRate}" IsEditable="True" VerticalAlignment="Center" />
+            </StackPanel>
 
-            <TextBlock Grid.Column="3" Text="Baud rate:" VerticalAlignment="Center" Margin="0,0,6,0" />
-            <ComboBox Grid.Column="4" ItemsSource="{Binding BaudRates}"
-                      SelectedItem="{Binding SelectedBaudRate}" IsEditable="True" VerticalAlignment="Center" />
-
-            <TextBlock Grid.Column="5" Text="Timeout (s):" VerticalAlignment="Center" Margin="16,0,6,0" />
-            <TextBox Grid.Column="6" Text="{Binding TimeoutSeconds}" VerticalAlignment="Center" />
-        </Grid>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <TextBlock Text="Timeout (s):" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <!-- 1-5 whole seconds only: MaxLength plus the Preview/Pasting
+                     handlers in the code-behind block anything but a single digit from
+                     reaching the box; the ValidationRule catches the remaining
+                     out-of-range case (0, 6-9) and drives the red border in
+                     Themes/Controls.xaml's TextBox style via Validation.HasError. -->
+                <TextBox x:Name="TimeoutTextBox" Width="50" VerticalAlignment="Center"
+                         MaxLength="1"
+                         PreviewTextInput="TimeoutTextBox_PreviewTextInput"
+                         DataObject.Pasting="TimeoutTextBox_Pasting">
+                    <TextBox.Text>
+                        <Binding Path="TimeoutSeconds" UpdateSourceTrigger="PropertyChanged">
+                            <Binding.ValidationRules>
+                                <validation:IntRangeValidationRule Min="1" Max="5" ValidationStep="RawProposedValue" />
+                            </Binding.ValidationRules>
+                        </Binding>
+                    </TextBox.Text>
+                </TextBox>
+            </StackPanel>
+        </WrapPanel>
     </GroupBox>
 </UserControl>

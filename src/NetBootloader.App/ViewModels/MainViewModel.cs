@@ -57,7 +57,7 @@ public sealed partial class MainViewModel : ObservableObject
         {
             Log.StatusText = $"Connecting to {Connection.SelectedPort}...";
             using var connection = new SerialBootloaderConnection(
-                Connection.SelectedPort!, Connection.SelectedBaudRate, (int)(Connection.TimeoutSeconds * 1000));
+                Connection.SelectedPort!, Connection.SelectedBaudRate, Connection.TimeoutSeconds * 1000);
 
             // DebugLog fires on the background thread FlashAsync runs on; route it
             // through Progress<T> so log lines land back on the UI thread like the

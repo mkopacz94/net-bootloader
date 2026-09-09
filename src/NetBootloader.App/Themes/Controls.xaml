@@ -106,6 +106,9 @@
         <Setter Property="Padding" Value="10,7" />
         <Setter Property="CaretBrush" Value="{StaticResource Brush.Primary}" />
         <Setter Property="SelectionBrush" Value="{StaticResource Brush.Primary}" />
+        <!-- We draw our own red border on Validation.HasError below - suppress WPF's
+             default red-dashed adorner so the two don't stack. -->
+        <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
@@ -130,10 +133,21 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="border" Property="Opacity" Value="0.6" />
                         </Trigger>
+                        <!-- Last so it wins over the focus trigger above: an invalid
+                             value should stay flagged red even while still focused. -->
+                        <Trigger Property="Validation.HasError" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource Brush.Danger}" />
+                            <Setter TargetName="border" Property="BorderThickness" Value="2" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ============================= ComboBox ============================= -->
@@ -297,12 +311,16 @@
                                 BorderThickness="1.5"
                                 VerticalAlignment="Center">
                             <Path x:Name="check"
-                                  Data="M2,6 L5.5,9.5 L12,2"
+                                  Data="M1,4.2 L4,7 L9,1"
                                   Stroke="White"
-                                  StrokeThickness="2"
+                                  StrokeThickness="1.6"
                                   StrokeStartLineCap="Round"
                                   StrokeEndLineCap="Round"
                                   StrokeLineJoin="Round"
+                                  Stretch="Uniform"
+                                  Width="9" Height="7"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
                                   Visibility="Collapsed" />
                         </Border>
                         <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center" />

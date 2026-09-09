@@ -18,6 +18,9 @@
     <Color x:Key="Color.Surface">#ffffff</Color>
     <Color x:Key="Color.Border">#e2e6f0</Color>
 
+    <!-- Validation state -->
+    <Color x:Key="Color.Danger">#e5484d</Color>
+
     <!-- Brushes -->
     <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource Color.Primary}" />
     <SolidColorBrush x:Key="Brush.Primary.MouseOver" Color="{StaticResource Color.Primary.MouseOver}" />
@@ -33,5 +36,7 @@
     <SolidColorBrush x:Key="Brush.Background" Color="{StaticResource Color.Background}" />
     <SolidColorBrush x:Key="Brush.Surface" Color="{StaticResource Color.Surface}" />
     <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource Color.Border}" />
+
+    <SolidColorBrush x:Key="Brush.Danger" Color="{StaticResource Color.Danger}" />
 
 </ResourceDictionary>

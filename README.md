@@ -58,6 +58,16 @@ method names were kept close to the original so the two can be cross-referenced.
     override (needed for rounded corners) and is the one piece here that
     couldn't be checked any way short of a real Windows build - flag it if
     the dropdown behaves oddly.
+  - `Validation/IntRangeValidationRule.cs` - backs the timeout field's 1-5
+    range check; `Themes/Controls.xaml`'s `TextBox` style turns a
+    `Validation.HasError` into a red border. `ConnectionView`'s code-behind
+    filters keystrokes/paste so only a single digit can reach the box at
+    all.
+  - Layout is responsive rather than fixed-pixel: `ConnectionView` and the
+    options row in `FirmwareView` use `WrapPanel` so field groups drop to
+    their own line instead of clipping when the window narrows;
+    `FlashLogView`'s log panel and `MainWindow`'s row grid already stretch
+    to fill available space.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX
