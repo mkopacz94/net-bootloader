@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <RootNamespace>NetBootloader.App</RootNamespace>
+    <ApplicationIcon>Resources\Icons\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NetBootloader.Core\NetBootloader.Core.csproj" />
+  </ItemGroup>
+
+  <!-- ApplicationIcon (above) only sets the built .exe's own icon (taskbar/File
+       Explorer); embedding the same file as a Resource additionally lets
+       MainWindow.xaml reference it via pack URI for the window's title-bar icon. -->
+  <ItemGroup>
+    <Resource Include="Resources\Icons\app.ico" />
   </ItemGroup>
 
 </Project>
