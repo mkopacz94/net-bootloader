@@ -19,22 +19,18 @@
             <!-- Language picker: shows just the current language's flag when closed;
                  clicking it (standard ComboBox click-to-open - no custom handling
                  needed) reveals the dropdown with flag + name per language. The
-                 "closed" and "open" states use different DataTemplates
-                 (SelectionBoxItemTemplate vs. ItemTemplate) - this app's own
-                 ComboBox ControlTemplate in Themes/Controls.xaml already wires
-                 SelectionBoxItemTemplate through, it just wasn't used until now.
-                 Bound to Localization.Strings.Instance directly (not the window's
-                 own DataContext), so it lives independently of anything else the
-                 app is doing. -->
+                 closed-box display uses LanguagePickerComboBoxStyle (Themes/
+                 Controls.xaml), which binds straight to SelectedItem instead of
+                 going through ComboBox's read-only SelectionBoxItem/
+                 SelectionBoxItemTemplate (those mirror ItemTemplate automatically
+                 and can't be set from markup, so they can't produce a closed
+                 display that differs from the open one on their own). ItemTemplate
+                 below still drives the open dropdown normally. -->
             <ComboBox HorizontalAlignment="Right" Margin="0,0,0,12" Width="60"
+                      Style="{StaticResource LanguagePickerComboBoxStyle}"
                       ItemsSource="{Binding AvailableLanguages}"
                       SelectedItem="{Binding SelectedLanguage}"
                       ToolTip="{Binding Source={x:Static loc:Strings.Instance}, Path=LanguagePickerTooltip}">
-                <ComboBox.SelectionBoxItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Flag}" FontFamily="Segoe UI Emoji" FontSize="18" />
-                    </DataTemplate>
-                </ComboBox.SelectionBoxItemTemplate>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
