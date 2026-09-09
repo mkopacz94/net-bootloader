@@ -94,7 +94,7 @@ public sealed partial class MainViewModel : ObservableObject
             // file turns out not to be usable.
             var hexContent = await LoadHexContentAsync(Firmware.HexFilePath!, _cancellationSource.Token);
 
-            Log.StatusText = Strings.Instance.StatusConnectingTo(Connection.SelectedPort!);
+            Log.SetStatus(strings => strings.StatusConnectingTo(Connection.SelectedPort!));
             using var connection = new SerialBootloaderConnection(
                 Connection.SelectedPort!, Connection.SelectedBaudRate, Connection.TimeoutSeconds * 1000);
 
@@ -118,12 +118,12 @@ public sealed partial class MainViewModel : ObservableObject
                 progress,
                 _cancellationSource.Token);
 
-            Log.StatusText = Strings.Instance.StatusFlashComplete;
+            Log.SetStatus(strings => strings.StatusFlashComplete);
             Log.ProgressPercent = 100;
         }
         catch (OperationCanceledException)
         {
-            Log.StatusText = Strings.Instance.StatusFlashCancelled;
+            Log.SetStatus(strings => strings.StatusFlashCancelled);
         }
         // Covers every way the selected file can turn out not to be flashable
         // firmware: a corrupted/wrong-key .tmfw package (InvalidDataException), HEX
@@ -135,22 +135,22 @@ public sealed partial class MainViewModel : ObservableObject
             var fileName = string.IsNullOrEmpty(Firmware.HexFilePath)
                 ? Strings.Instance.SelectedFileFallback
                 : $"\"{Path.GetFileName(Firmware.HexFilePath)}\"";
-            Log.StatusText = Strings.Instance.StatusInvalidFirmwareFile;
+            Log.SetStatus(strings => strings.StatusInvalidFirmwareFile);
             MessageDialog.ShowError(
                 Strings.Instance.InvalidFirmwareDialogTitle,
                 Strings.Instance.InvalidFirmwareDialogMessage(fileName, ex.Message));
         }
         catch (VerifyFailException)
         {
-            Log.StatusText = Strings.Instance.StatusVerifyFailed;
+            Log.SetStatus(strings => strings.StatusVerifyFailed);
         }
         catch (BootloaderException ex)
         {
-            Log.StatusText = Strings.Instance.StatusError(ex.Message);
+            Log.SetStatus(strings => strings.StatusError(ex.Message));
         }
         catch (Exception ex) when (ex is IOException or TimeoutException)
         {
-            Log.StatusText = Strings.Instance.StatusConnectionError(ex.Message);
+            Log.SetStatus(strings => strings.StatusConnectionError(ex.Message));
         }
         finally
         {
