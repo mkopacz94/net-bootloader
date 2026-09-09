@@ -38,7 +38,9 @@ method names were kept close to the original so the two can be cross-referenced.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX
-  parser, and chunk alignment/cropping.
+  parser, and chunk alignment/cropping. `BootloaderClientRealCaptureTests`
+  replays byte sequences copied verbatim from real serial captures (see
+  below) through `BootloaderClient` as regression tests.
 
 ## Building
 
@@ -53,21 +55,49 @@ could build and test `NetBootloader.Core` but not the WPF project itself.
 Review `MainWindow.xaml`/`MainViewModel.cs` on a Windows machine before
 relying on them.
 
-## Known gaps / things to verify against real hardware
+## Validated against real captures
+
+Three real serial logs were used to check this port against actual bootloader
+traffic: two from mcbootflash's own CLI (one full flash, one that hit a real
+`Checksum mismatch` failure) and one from Microchip's official Unified
+Bootloader Host Application (UBHA) - an independent implementation talking to
+the same firmware. All three agree with this port's framing:
+
+- `READ_VERSION` / `GET_MEMORY_ADDRESS_RANGE` field offsets and the `+2`
+  half-open range adjustment (checked against the captured
+  `0x003800:0x0153FE` -> `MemoryRangeEnd = 0x00015400`).
+- `ERASE_FLASH` command encoding (`data_length` = page count, the
+  `0x00AA0055` unlock key, little-endian address).
+- `CALC_CHECKSUM` response decoding, including the real
+  `Checksum mismatch: 3120 != 2100` failure from the CRC_ERR log, replayed
+  byte-for-byte as a regression test.
+- `READ_FLASH`'s two-part response (an ack, then a separate raw-data read
+  sized from the response's echoed `data_length`) - confirmed via UBHA's
+  read-back verification step. One real difference surfaced here: UBHA sends
+  the flash unlock key even on `READ_FLASH`, while mcbootflash (and this
+  port) correctly omits it, since the protocol only documents
+  `unlock_sequence` as mattering for `WRITE_FLASH`/`ERASE_FLASH` - see
+  `BootloaderClientRealCaptureTests.ReadFlash_MatchesRealCapturedUbhaReadback`.
+- The UBHA log also confirmed the bootloader accepts an `ERASE_FLASH` command
+  spanning many pages at once (`data_length = 71`) rather than mcbootflash's
+  page-by-page approach; `FirmwareFlasher` sticks with page-by-page since it
+  drives incremental progress reporting, but a single large erase is also
+  valid if you'd rather trade that off for fewer round trips.
+
+## Remaining gaps
 
 - The Intel HEX parser is a generic byte-addressed implementation (record
-  types `00`/`01`/`02`/`04`; `03`/`05` are recognized and ignored). It was
-  not validated against mcbootflash's `bincopy`-based Microchip-specific
-  handling - for standard MPLAB X/XC16-generated `.hex` output this should
-  produce identical byte layout (including the "phantom" 4th byte per
-  24-bit instruction word), but it's worth diffing chunk output against a
-  known-good flash for your specific device family before trusting it in
-  production.
-- No real device or serial logs were available while writing this - the
-  protocol layout, command codes, and workflow come from mcbootflash's
-  source and its checked-in test fixtures, not from hardware captures.
-  Validate `BootloaderClient`/`FirmwareFlasher` against your target before
-  shipping.
+  types `00`/`01`/`02`/`04`; `03`/`05` are recognized and ignored) and wasn't
+  checked against an actual `.hex` file - the captures above cover the wire
+  protocol, not hex parsing/chunking. For standard MPLAB X/XC16-generated
+  output this should produce identical byte layout (including the "phantom"
+  4th byte per 24-bit instruction word), but it's worth diffing chunk output
+  against a known-good flash for your specific device family before trusting
+  it in production.
+- No capture of a `BAD_ADDRESS`-during-erase response was available, so
+  `FirmwareFlasher`'s workaround for that (re-erasing the remainder in one
+  command, per mcbootflash issue #86) is untested against real traffic -
+  only the general response-code-to-exception mapping is unit tested.
 - `SerialBootloaderConnection`'s erase-timeout handling is basic: erasing a
   large memory area can take several seconds, so size the connection's
   `timeoutMilliseconds` accordingly before calling `EraseFlash`.
