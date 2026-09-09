@@ -98,11 +98,13 @@ public class HexFileTests
             Assert.Equal(12, totalBytes);
             Assert.Equal(2, chunks.Count);
 
-            Assert.Equal(0x0100u, chunks[0].Address);
+            // File address 0x0100 -> real device address 0x0080 (Microchip HEX
+            // addresses are twice the real address - see IntelHexParser's docs).
+            Assert.Equal(0x0080u, chunks[0].Address);
             Assert.Equal(8, chunks[0].Data.Length);
             Assert.Equal(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }, chunks[0].Data);
 
-            Assert.Equal(0x0108u, chunks[1].Address);
+            Assert.Equal(0x0084u, chunks[1].Address);
             Assert.Equal(4, chunks[1].Data.Length);
             // Bytes 8 and 9 are real data; the rest is 0xFF padding.
             Assert.Equal(new byte[] { 8, 9, 0xFF, 0xFF }, chunks[1].Data);
@@ -124,6 +126,10 @@ public class HexFileTests
                 tempFile,
                 BuildFile(BuildDataRecord(0x0000, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 })));
 
+            // MemoryRangeStart/End are real device addresses; internally they're
+            // doubled to file-literal space (0x0004..0x000C) before cropping the
+            // file's data (at file addresses 0x0000..0x0008), keeping file addresses
+            // 4-7 (values 5-8). See the address-scale comment in HexFileChunker.
             var attrs = new BootAttributes(1, 19, 0, 1024, 4, MemoryRangeStart: 0x0002, MemoryRangeEnd: 0x0006);
 
             var (totalBytes, chunks) = HexFileChunker.Chunk(tempFile, attrs);
@@ -131,7 +137,38 @@ public class HexFileTests
             Assert.Equal(4, totalBytes);
             var chunk = Assert.Single(chunks);
             Assert.Equal(0x0002u, chunk.Address);
-            Assert.Equal(new byte[] { 3, 4, 5, 6 }, chunk.Data);
+            Assert.Equal(new byte[] { 5, 6, 7, 8 }, chunk.Data);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void Chunker_ScalesMicrochipFileAddressToRealDeviceAddress()
+    {
+        // The actual bug this guards against: the same firmware self-verified fine
+        // through mcbootflash (whose bincopy-based parser halves Microchip HEX
+        // addresses) and failed self-verify through this port before this fix,
+        // because file addresses were being sent to the device unscaled.
+        var tempFile = Path.GetTempFileName();
+
+        try
+        {
+            // File address 0x0010 -> real device address 0x0008.
+            File.WriteAllText(
+                tempFile,
+                BuildFile(BuildDataRecord(0x0010, new byte[] { 0xAA, 0xBB, 0xCC, 0xDD })));
+
+            var attrs = new BootAttributes(1, 19, 0, 1024, 4, MemoryRangeStart: 0x0000, MemoryRangeEnd: 0x1000);
+
+            var (totalBytes, chunks) = HexFileChunker.Chunk(tempFile, attrs);
+
+            Assert.Equal(4, totalBytes);
+            var chunk = Assert.Single(chunks);
+            Assert.Equal(0x0008u, chunk.Address);
+            Assert.Equal(new byte[] { 0xAA, 0xBB, 0xCC, 0xDD }, chunk.Data);
         }
         finally
         {

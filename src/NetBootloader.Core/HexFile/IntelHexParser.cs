@@ -7,6 +7,16 @@ namespace NetBootloader.Core.HexFile;
 /// mcbootflash (and this port) target. Start segment/linear address records (03, 05)
 /// are recognized and ignored, since they only matter for a CPU's own reset vector,
 /// not for flashing.
+///
+/// This parser is deliberately format-agnostic about what an address <em>means</em> -
+/// it just reads the address field exactly as written in the file, standard Intel HEX
+/// style. That matters because Microchip's own HEX files for these targets don't use
+/// plain byte addresses: per bincopy's <c>add_microchip_hex</c> (the parser mcbootflash
+/// itself uses), "an address in the HEX file is twice the actual machine address" -
+/// e.g. file address 0x000E is machine address 0x0007. <see cref="HexFileChunker"/> is
+/// where that Microchip-specific halving is actually applied, once, to each parsed
+/// segment's address - not here, and not per byte (which would corrupt the contiguity
+/// detection this parser relies on to merge records into segments in the first place).
 /// </summary>
 public static class IntelHexParser
 {

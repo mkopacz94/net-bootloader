@@ -39,7 +39,27 @@ public static class HexFileChunker
         TextReader hexReader, BootAttributes attrs)
     {
         var segments = IntelHexParser.Parse(hexReader);
-        var cropped = CropToRange(segments, attrs.MemoryRangeStart, attrs.MemoryRangeEnd);
+
+        // Microchip's 16-bit HEX format encodes every address as twice the real
+        // device (word) address - see IntelHexParser's doc comment. IntelHexParser
+        // itself is address-format-agnostic and returns segments still in that raw,
+        // file-literal space, so MemoryRangeStart/End (real device addresses, as
+        // reported by GET_MEMORY_ADDRESS_RANGE) need scaling into the same space
+        // before they're comparable to segment addresses for cropping. The final
+        // chunk addresses get scaled back down below, once cropping/padding/
+        // splitting - all byte-length-based, so unaffected by this - are done.
+        //
+        // Getting this wrong doesn't fail loudly: checksums are computed purely
+        // from data bytes, not addresses, so a wrong-but-internally-consistent
+        // address slips straight through per-chunk verification and only surfaces
+        // as VERIFY_FAIL at the very end, or as a silently bricked device if
+        // self-verify isn't checked either. Confirmed against a real device: the
+        // exact same firmware self-verified fine through mcbootflash (whose
+        // bincopy-based parser applies this same scaling) and failed through this
+        // port before this fix.
+        const uint microchipAddressScale = 2;
+        var cropped = CropToRange(
+            segments, attrs.MemoryRangeStart * microchipAddressScale, attrs.MemoryRangeEnd * microchipAddressScale);
 
         if (cropped.Sum(s => s.Data.Length) == 0)
         {
@@ -67,7 +87,8 @@ public static class HexFileChunker
                 var length = Math.Min(chunkSize, padded.Data.Length - offset);
                 var pieceData = new byte[length];
                 Array.Copy(padded.Data, offset, pieceData, 0, length);
-                chunks.Add(new FirmwareChunk(padded.Address + (uint)offset, pieceData));
+                var address = (padded.Address + (uint)offset) / microchipAddressScale;
+                chunks.Add(new FirmwareChunk(address, pieceData));
             }
         }
 

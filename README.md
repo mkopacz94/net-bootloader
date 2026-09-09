@@ -162,16 +162,39 @@ the same firmware. All three agree with this port's framing:
   drives incremental progress reporting, but a single large erase is also
   valid if you'd rather trade that off for fewer round trips.
 
+## Found via real hardware: Microchip HEX address scaling
+
+A real flash on real hardware caught something the captures above couldn't:
+firmware that flashed and self-verified fine through mcbootflash failed
+self-verify (`VERIFY_FAIL`) through this port, with every single per-chunk
+checksum still reporting OK. That combination is the signature of a systematic
+*address* bug rather than a data-corruption one - checksums are computed
+purely from data bytes, never addresses, so wrong-but-consistent addresses
+sail straight through checksum verification and only surface at self-verify,
+or not at all if self-verify isn't checked either.
+
+The cause: Microchip's 16-bit (PIC24/dsPIC33) HEX format encodes every
+address as **twice** the real device address - confirmed directly against
+bincopy's source (the parser mcbootflash itself uses via
+`add_microchip_hex`), not just inferred. `IntelHexParser` parses the address
+field exactly as written, standard Intel HEX style, with no opinion about
+what it means; `HexFileChunker` is where the halving belongs, and where it
+was missing. Fixed now - `HexFileChunker` scales the bootloader-reported
+memory range into the HEX file's address space before cropping, and scales
+each resulting chunk's address back down before it's sent - with a dedicated
+regression test (`Chunker_ScalesMicrochipFileAddressToRealDeviceAddress`)
+using the exact file-address-to-machine-address example from bincopy's own
+docs (`0x000E` -> `0x0007`).
+
 ## Remaining gaps
 
-- The Intel HEX parser is a generic byte-addressed implementation (record
-  types `00`/`01`/`02`/`04`; `03`/`05` are recognized and ignored) and wasn't
-  checked against an actual `.hex` file - the captures above cover the wire
-  protocol, not hex parsing/chunking. For standard MPLAB X/XC16-generated
-  output this should produce identical byte layout (including the "phantom"
-  4th byte per 24-bit instruction word), but it's worth diffing chunk output
-  against a known-good flash for your specific device family before trusting
-  it in production.
+- The Intel HEX parser's record handling (`00`/`01`/`02`/`04`; `03`/`05`
+  recognized and ignored) is now confirmed against a real device flash - see
+  above - but only for one firmware image on one device. It's still worth
+  diffing chunk output against a known-good flash the first time you point
+  this at a different device family, in case there's another
+  device-specific convention like the address scaling above that hasn't
+  surfaced yet.
 - No capture of a `BAD_ADDRESS`-during-erase response was available, so
   `FirmwareFlasher`'s workaround for that (re-erasing the remainder in one
   command, per mcbootflash issue #86) is untested against real traffic -
