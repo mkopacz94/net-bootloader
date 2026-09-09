@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:NetBootloader.App.ViewModels"
         xmlns:views="clr-namespace:NetBootloader.App.Views"
-        Title="Net Bootloader" Height="560" Width="720" MinHeight="480" MinWidth="600">
+        Title="Net Bootloader" Height="720" Width="720" MinHeight="620" MinWidth="600">
     <Window.DataContext>
         <vm:MainViewModel />
     </Window.DataContext>
@@ -13,7 +13,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <!-- MinHeight is a floor so the log card can't be squeezed to nothing at
+                 the window's smallest size - Window.MinHeight above is set to leave
+                 room for it on top of the Auto rows. -->
+            <RowDefinition Height="*" MinHeight="140" />
         </Grid.RowDefinitions>
 
         <views:ConnectionView Grid.Row="0" DataContext="{Binding Connection}" Margin="0,0,0,16" />
