@@ -46,7 +46,7 @@ method names were kept close to the original so the two can be cross-referenced.
   view/viewmodel:
   - `ViewModels/ConnectionViewModel` + `Views/ConnectionView` - COM port,
     baud rate, timeout.
-  - `ViewModels/FirmwareViewModel` + `Views/FirmwareView` - `.hex` file
+  - `ViewModels/FirmwareViewModel` + `Views/FirmwareView` - `.tmfw` package
     picker, checksum/reset options.
   - `ViewModels/FlashLogViewModel` + `Views/FlashLogView` - progress bar,
     status text, live packet log.
@@ -69,21 +69,26 @@ method names were kept close to the original so the two can be cross-referenced.
     the app's palette) instead of the OS-chrome default `MessageBox`.
     `MessageDialog.ShowError(title, message)` is the entry point; currently
     used for one thing - `MainViewModel.FlashAsync` shows it whenever the
-    selected file turns out not to be flashable firmware (invalid/corrupted
-    `.tmfw` package, malformed HEX, or HEX with no data in the device's
-    flash range).
+    selected file turns out not to be flashable firmware (anything other
+    than a `.tmfw` extension, an invalid/corrupted `.tmfw` package, or HEX
+    with no data in the device's flash range once decrypted).
   - `Localization/Strings.cs` - English and Polish UI text as a singleton
     (`Strings.Instance`), bound directly from XAML
     (`{Binding Source={x:Static loc:Strings.Instance}, Path=ConnectionHeader}`).
-    Switching `Strings.Instance.Language` (via the picker in the top-right
-    of `MainWindow`) updates every bound label live - no restart, no
-    `.resx`/satellite-assembly machinery, deliberately, given the app's
-    size. Static text is a property; text needing arguments (a port name, a
-    byte count, an exception message) is a method, since bindings can't
-    pass arguments. Every key is checked against both languages by hand
-    (see commit history) - a missing translation would otherwise only
-    surface as a `KeyNotFoundException` the first time that string, in that
-    language, was actually displayed.
+    Switching `Strings.Instance.Language` updates every bound label live -
+    no restart, no `.resx`/satellite-assembly machinery, deliberately,
+    given the app's size. Static text is a property; text needing
+    arguments (a port name, a byte count, an exception message) is a
+    method, since bindings can't pass arguments. Every key is checked
+    against both languages by hand (see commit history) - a missing
+    translation would otherwise only surface as a `KeyNotFoundException`
+    the first time that string, in that language, was actually displayed.
+    The picker itself (`MainWindow`, top-right) is a `ComboBox` styled to
+    show only the current language's flag emoji when closed
+    (`ComboBox.SelectionBoxItemTemplate`) and flag + name per option once
+    opened (`ComboBox.ItemTemplate`) - `Localization/LanguageOption.cs`
+    carries the flag alongside each language's `AppLanguage` value and
+    self-written display name.
   - `Validation/IntRangeValidationRule.cs` - backs the timeout field's 1-5
     range check; `Themes/Controls.xaml`'s `TextBox` style turns a
     `Validation.HasError` into a red border. `ConnectionView`'s code-behind
@@ -110,8 +115,11 @@ method names were kept close to the original so the two can be cross-referenced.
   ```
 
   Distribute the `.tmfw` file, not the `.hex` file. `NetBootloader.App`'s
-  firmware picker accepts either extension: `.hex` is read as-is, `.tmfw` is
-  decrypted in memory (never written back to disk) right before flashing.
+  firmware picker accepts `.tmfw` only - anything else (including a raw
+  `.hex` file) is rejected outright, so the app's file dialog, drag/drop,
+  and `MainViewModel.CanFlash` check never expose or accept the unencrypted
+  firmware. `.tmfw` packages are decrypted in memory (never written back to
+  disk) right before flashing.
 
 - **`tests/NetBootloader.Core.Tests`** - xUnit tests covering packet
   pack/unpack byte layouts, response-code-to-exception mapping, the Intel HEX

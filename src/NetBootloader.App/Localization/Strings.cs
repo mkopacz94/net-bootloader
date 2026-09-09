@@ -66,7 +66,7 @@ public sealed class Strings : INotifyPropertyChanged
     public string FlashButton => T(nameof(FlashButton));
     public string CancelButton => T(nameof(CancelButton));
     public string OkButton => T(nameof(OkButton));
-    public string LanguageLabel => T(nameof(LanguageLabel));
+    public string LanguagePickerTooltip => T(nameof(LanguagePickerTooltip));
 
     // ----- Status / log text -----
 
@@ -99,10 +99,7 @@ public sealed class Strings : INotifyPropertyChanged
     // ----- Firmware file picker -----
 
     public string SelectFirmwareDialogTitle => T(nameof(SelectFirmwareDialogTitle));
-    public string FirmwareFilesFilterLabel => T(nameof(FirmwareFilesFilterLabel));
-    public string HexFilesFilterLabel => T(nameof(HexFilesFilterLabel));
     public string PackageFilesFilterLabel => T(nameof(PackageFilesFilterLabel));
-    public string AllFilesFilterLabel => T(nameof(AllFilesFilterLabel));
 
     private string T(string key) => Translations[_language][key];
 
@@ -125,7 +122,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(FlashButton)] = "Flash",
             [nameof(CancelButton)] = "Cancel",
             [nameof(OkButton)] = "OK",
-            [nameof(LanguageLabel)] = "Language:",
+            [nameof(LanguagePickerTooltip)] = "Language",
 
             [nameof(StatusReady)] = "Ready.",
             [nameof(StatusReadingBootAttrs)] = "Reading bootloader attributes...",
@@ -142,17 +139,14 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusError)] = "Error: {0}",
             [nameof(StatusConnectionError)] = "Connection error: {0}",
 
-            [nameof(UnsupportedFirmwareFileType)] = "Unsupported firmware file type \"{0}\" - expected .hex or .tmfw.",
+            [nameof(UnsupportedFirmwareFileType)] = "Unsupported firmware file type \"{0}\" - expected .tmfw.",
             [nameof(ValidationRangeError)] = "Enter a whole number from {0} to {1}.",
             [nameof(InvalidFirmwareDialogTitle)] = "Invalid firmware file",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} doesn't look like valid firmware.\n\n{1}",
             [nameof(SelectedFileFallback)] = "The selected file",
 
             [nameof(SelectFirmwareDialogTitle)] = "Select firmware image",
-            [nameof(FirmwareFilesFilterLabel)] = "Firmware files",
-            [nameof(HexFilesFilterLabel)] = "Intel HEX files",
             [nameof(PackageFilesFilterLabel)] = "Encrypted firmware packages",
-            [nameof(AllFilesFilterLabel)] = "All files",
         },
         [AppLanguage.Polish] = new()
         {
@@ -169,7 +163,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(FlashButton)] = "Wgraj",
             [nameof(CancelButton)] = "Anuluj",
             [nameof(OkButton)] = "OK",
-            [nameof(LanguageLabel)] = "Język:",
+            [nameof(LanguagePickerTooltip)] = "Język",
 
             [nameof(StatusReady)] = "Gotowy.",
             [nameof(StatusReadingBootAttrs)] = "Odczytywanie parametrów bootloadera...",
@@ -186,17 +180,14 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusError)] = "Błąd: {0}",
             [nameof(StatusConnectionError)] = "Błąd połączenia: {0}",
 
-            [nameof(UnsupportedFirmwareFileType)] = "Nieobsługiwany typ pliku oprogramowania \"{0}\" - oczekiwano .hex lub .tmfw.",
+            [nameof(UnsupportedFirmwareFileType)] = "Nieobsługiwany typ pliku oprogramowania \"{0}\" - oczekiwano .tmfw.",
             [nameof(ValidationRangeError)] = "Wprowadź liczbę całkowitą od {0} do {1}.",
             [nameof(InvalidFirmwareDialogTitle)] = "Nieprawidłowy plik oprogramowania",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} nie wygląda na prawidłowe oprogramowanie sprzętowe.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Wybrany plik",
 
             [nameof(SelectFirmwareDialogTitle)] = "Wybierz plik oprogramowania",
-            [nameof(FirmwareFilesFilterLabel)] = "Pliki oprogramowania",
-            [nameof(HexFilesFilterLabel)] = "Pliki Intel HEX",
             [nameof(PackageFilesFilterLabel)] = "Zaszyfrowane pakiety oprogramowania",
-            [nameof(AllFilesFilterLabel)] = "Wszystkie pliki",
         },
     };
 }

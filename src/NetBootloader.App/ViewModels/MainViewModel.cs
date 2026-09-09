@@ -42,8 +42,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     public ObservableCollection<LanguageOption> AvailableLanguages { get; } = new()
     {
-        new LanguageOption(AppLanguage.English, "English"),
-        new LanguageOption(AppLanguage.Polish, "Polski"),
+        new LanguageOption(AppLanguage.English, "English", "🇬🇧"),
+        new LanguageOption(AppLanguage.Polish, "Polski", "🇵🇱"),
     };
 
     /// <summary>
@@ -71,14 +71,12 @@ public sealed partial class MainViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
     private bool _isBusy;
 
-    private static readonly string[] SupportedFirmwareExtensions = { ".hex", ".tmfw" };
-
     private bool CanFlash() =>
         !IsBusy
         && !string.IsNullOrWhiteSpace(Connection.SelectedPort)
         && !string.IsNullOrWhiteSpace(Firmware.HexFilePath)
         && File.Exists(Firmware.HexFilePath)
-        && SupportedFirmwareExtensions.Contains(Path.GetExtension(Firmware.HexFilePath), StringComparer.OrdinalIgnoreCase);
+        && string.Equals(Path.GetExtension(Firmware.HexFilePath), ".tmfw", StringComparison.OrdinalIgnoreCase);
 
     [RelayCommand(CanExecute = nameof(CanFlash))]
     private async Task FlashAsync()
@@ -161,29 +159,24 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Loads a firmware file's HEX content by extension: <c>.tmfw</c> is read as bytes
-    /// and decrypted in memory (the plaintext HEX never touches disk); <c>.hex</c> is
-    /// read as-is. Anything else is rejected outright, rather than silently falling
-    /// through to being treated as plain HEX and only failing later once it's parsed.
+    /// Loads a firmware file's HEX content: only <c>.tmfw</c> packages are accepted -
+    /// read as bytes and decrypted in memory, so the plaintext HEX never touches disk.
+    /// Anything else is rejected outright, rather than silently falling through to
+    /// being treated as plain HEX and only failing later once it's parsed.
     /// </summary>
-    /// <exception cref="InvalidDataException">If the extension isn't <c>.hex</c> or <c>.tmfw</c>.</exception>
+    /// <exception cref="InvalidDataException">If the extension isn't <c>.tmfw</c>.</exception>
     private async Task<string> LoadHexContentAsync(string filePath, CancellationToken cancellationToken)
     {
         var extension = Path.GetExtension(filePath);
 
-        if (string.Equals(extension, ".tmfw", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(extension, ".tmfw", StringComparison.OrdinalIgnoreCase))
         {
-            Log.AppendLog(Strings.Instance.StatusDecryptingPackage);
-            var package = await File.ReadAllBytesAsync(filePath, cancellationToken);
-            return FirmwarePackage.Decrypt(package);
+            throw new InvalidDataException(Strings.Instance.UnsupportedFirmwareFileType(extension));
         }
 
-        if (string.Equals(extension, ".hex", StringComparison.OrdinalIgnoreCase))
-        {
-            return await File.ReadAllTextAsync(filePath, cancellationToken);
-        }
-
-        throw new InvalidDataException(Strings.Instance.UnsupportedFirmwareFileType(extension));
+        Log.AppendLog(Strings.Instance.StatusDecryptingPackage);
+        var package = await File.ReadAllBytesAsync(filePath, cancellationToken);
+        return FirmwarePackage.Decrypt(package);
     }
 
     [RelayCommand(CanExecute = nameof(IsBusy))]

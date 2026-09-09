@@ -9,9 +9,11 @@ namespace NetBootloader.App.ViewModels;
 public sealed partial class FirmwareViewModel : ObservableObject
 {
     /// <summary>
-    /// Path to either a plain Intel HEX file, or an encrypted <c>.tmfw</c> package
-    /// produced by <c>NetBootloader.HexPackager</c> - MainViewModel tells which is
-    /// which by extension and decrypts a package in memory before flashing.
+    /// Path to an encrypted <c>.tmfw</c> package produced by
+    /// <c>NetBootloader.HexPackager</c> - MainViewModel decrypts it in memory right
+    /// before flashing. Plain <c>.hex</c> files aren't accepted here; that escape
+    /// hatch existed only during development and is deliberately closed off now, so
+    /// the raw firmware never has to be handed to (or opened by) whoever runs this app.
     /// </summary>
     [ObservableProperty]
     private string? _hexFilePath;
@@ -28,10 +30,7 @@ public sealed partial class FirmwareViewModel : ObservableObject
         var strings = Strings.Instance;
         var dialog = new OpenFileDialog
         {
-            Filter = $"{strings.FirmwareFilesFilterLabel} (*.hex;*.tmfw)|*.hex;*.tmfw|" +
-                     $"{strings.HexFilesFilterLabel} (*.hex)|*.hex|" +
-                     $"{strings.PackageFilesFilterLabel} (*.tmfw)|*.tmfw|" +
-                     $"{strings.AllFilesFilterLabel} (*.*)|*.*",
+            Filter = $"{strings.PackageFilesFilterLabel} (*.tmfw)|*.tmfw",
             Title = strings.SelectFirmwareDialogTitle,
         };
 
