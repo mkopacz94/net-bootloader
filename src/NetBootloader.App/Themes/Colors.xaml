@@ -18,8 +18,9 @@
     <Color x:Key="Color.Surface">#ffffff</Color>
     <Color x:Key="Color.Border">#e2e6f0</Color>
 
-    <!-- Validation state -->
+    <!-- Validation / message-dialog severities -->
     <Color x:Key="Color.Danger">#e5484d</Color>
+    <Color x:Key="Color.Success">#2fb380</Color>
 
     <!-- Brushes -->
     <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource Color.Primary}" />
@@ -38,5 +39,6 @@
     <SolidColorBrush x:Key="Brush.Border" Color="{StaticResource Color.Border}" />
 
     <SolidColorBrush x:Key="Brush.Danger" Color="{StaticResource Color.Danger}" />
+    <SolidColorBrush x:Key="Brush.Success" Color="{StaticResource Color.Success}" />
 
 </ResourceDictionary>

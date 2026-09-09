@@ -22,10 +22,9 @@
         </Border.Effect>
         <StackPanel MinWidth="320" MaxWidth="392">
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                <Border Width="32" Height="32" CornerRadius="16"
-                        Background="{StaticResource Brush.Danger}"
+                <Border x:Name="IconBadge" Width="32" Height="32" CornerRadius="16"
                         Margin="0,0,12,0">
-                    <TextBlock Text="!" FontWeight="Bold" FontSize="16" Foreground="White"
+                    <TextBlock x:Name="IconGlyphText" FontWeight="Bold" FontSize="16" Foreground="White"
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <TextBlock x:Name="TitleTextBlock" FontWeight="SemiBold" FontSize="15"
