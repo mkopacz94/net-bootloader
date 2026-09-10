@@ -120,6 +120,10 @@ public sealed partial class MainViewModel : ObservableObject
 
             Log.SetStatus(strings => strings.StatusFlashComplete);
             Log.ProgressPercent = 100;
+
+            MessageDialog.ShowSuccess(
+                Strings.Instance.MessageFlashingSuccessTitle,
+                Strings.Instance.MessageFlashingSuccessMessage);
         }
         catch (OperationCanceledException)
         {
@@ -143,14 +147,17 @@ public sealed partial class MainViewModel : ObservableObject
         catch (VerifyFailException)
         {
             Log.SetStatus(strings => strings.StatusVerifyFailed);
+            MessageDialog.ShowError(Strings.Instance.ErrorDialogTitle, Strings.Instance.StatusVerifyFailed);
         }
         catch (BootloaderException ex)
         {
             Log.SetStatus(strings => strings.StatusError(ex.Message));
+            MessageDialog.ShowError(Strings.Instance.ErrorDialogTitle, Strings.Instance.StatusError(ex.Message));
         }
         catch (Exception ex) when (ex is IOException or TimeoutException)
         {
             Log.SetStatus(strings => strings.StatusConnectionError(ex.Message));
+            MessageDialog.ShowError(Strings.Instance.ErrorDialogTitle, Strings.Instance.StatusConnectionError(ex.Message));
         }
         finally
         {

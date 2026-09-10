@@ -104,6 +104,13 @@ public sealed class Strings : INotifyPropertyChanged
         Format(nameof(InvalidFirmwareDialogMessage), fileName, details);
     public string SelectedFileFallback => T(nameof(SelectedFileFallback));
 
+    /// <summary>
+    /// Generic error-dialog title, shared by every failure that doesn't need its own
+    /// wording (unlike <see cref="InvalidFirmwareDialogTitle"/>) - the corresponding
+    /// StatusXxx text (already a complete sentence) doubles as the dialog's message.
+    /// </summary>
+    public string ErrorDialogTitle => T(nameof(ErrorDialogTitle));
+
     // ----- Firmware file picker -----
 
     public string SelectFirmwareDialogTitle => T(nameof(SelectFirmwareDialogTitle));
@@ -152,6 +159,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(InvalidFirmwareDialogTitle)] = "Invalid firmware file",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} doesn't look like valid firmware.\n\n{1}",
             [nameof(SelectedFileFallback)] = "The selected file",
+            [nameof(ErrorDialogTitle)] = "Error",
 
             [nameof(MessageFlashingSuccessTitle)] = "Flashing finished",
             [nameof(MessageFlashingSuccessMessage)] = "Flashing the device memory completed succesfully.",
@@ -196,6 +204,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(InvalidFirmwareDialogTitle)] = "Nieprawidłowy plik oprogramowania",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} nie wygląda na prawidłowe oprogramowanie sprzętowe.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Wybrany plik",
+            [nameof(ErrorDialogTitle)] = "Błąd",
 
             [nameof(MessageFlashingSuccessTitle)] = "Wgrywanie zakończone",
             [nameof(MessageFlashingSuccessMessage)] = "Wgrywanie programu do pamięci urządzenia zakończone pomyślnie.",
@@ -240,6 +249,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(InvalidFirmwareDialogTitle)] = "Fichier de micrologiciel invalide",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} ne ressemble pas à un micrologiciel valide.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Le fichier sélectionné",
+            [nameof(ErrorDialogTitle)] = "Erreur",
 
             [nameof(MessageFlashingSuccessTitle)] = "Chargement terminé",
             [nameof(MessageFlashingSuccessMessage)] = "Le chargement de la mémoire de l'appareil s'est terminé avec succès.",
@@ -284,6 +294,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(InvalidFirmwareDialogTitle)] = "Ungültige Firmware-Datei",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} sieht nicht wie gültige Firmware aus.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Die ausgewählte Datei",
+            [nameof(ErrorDialogTitle)] = "Fehler",
 
             [nameof(MessageFlashingSuccessTitle)] = "Flashen abgeschlossen",
             [nameof(MessageFlashingSuccessMessage)] = "Das Flashen des Gerätespeichers wurde erfolgreich abgeschlossen.",
