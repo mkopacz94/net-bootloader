@@ -65,6 +65,7 @@ public sealed class Strings : INotifyPropertyChanged
     public string DownloadButton => T(nameof(DownloadButton));
     public string SoftwareBetaBadge => T(nameof(SoftwareBetaBadge));
     public string SoftwareEmptyCatalog => T(nameof(SoftwareEmptyCatalog));
+    public string SoftwareDownloadedTooltip => T(nameof(SoftwareDownloadedTooltip));
     public string FirmwareHeader => T(nameof(FirmwareHeader));
     public string BrowseButton => T(nameof(BrowseButton));
     public string VerifyChecksumOption => T(nameof(VerifyChecksumOption));
@@ -140,6 +141,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(DownloadButton)] = "Download",
             [nameof(SoftwareBetaBadge)] = "BETA",
             [nameof(SoftwareEmptyCatalog)] = "No software available.",
+            [nameof(SoftwareDownloadedTooltip)] = "Downloaded and ready to flash",
             [nameof(FirmwareHeader)] = "Firmware",
             [nameof(BrowseButton)] = "Browse...",
             [nameof(VerifyChecksumOption)] = "Verify checksum after each write",
@@ -191,6 +193,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(DownloadButton)] = "Pobierz",
             [nameof(SoftwareBetaBadge)] = "BETA",
             [nameof(SoftwareEmptyCatalog)] = "Brak dostępnego oprogramowania.",
+            [nameof(SoftwareDownloadedTooltip)] = "Pobrano i gotowe do wgrania",
             [nameof(FirmwareHeader)] = "Oprogramowanie sprzętowe",
             [nameof(BrowseButton)] = "Przeglądaj...",
             [nameof(VerifyChecksumOption)] = "Weryfikuj sumę kontrolną po każdym zapisie",
@@ -242,6 +245,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(DownloadButton)] = "Télécharger",
             [nameof(SoftwareBetaBadge)] = "BÊTA",
             [nameof(SoftwareEmptyCatalog)] = "Aucun logiciel disponible.",
+            [nameof(SoftwareDownloadedTooltip)] = "Téléchargé et prêt à charger",
             [nameof(FirmwareHeader)] = "Micrologiciel",
             [nameof(BrowseButton)] = "Parcourir...",
             [nameof(VerifyChecksumOption)] = "Vérifier la somme de contrôle après chaque écriture",
@@ -293,6 +297,7 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(DownloadButton)] = "Herunterladen",
             [nameof(SoftwareBetaBadge)] = "BETA",
             [nameof(SoftwareEmptyCatalog)] = "Keine Software verfügbar.",
+            [nameof(SoftwareDownloadedTooltip)] = "Heruntergeladen und bereit zum Flashen",
             [nameof(FirmwareHeader)] = "Firmware",
             [nameof(BrowseButton)] = "Durchsuchen...",
             [nameof(VerifyChecksumOption)] = "Prüfsumme nach jedem Schreibvorgang überprüfen",

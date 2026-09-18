@@ -56,6 +56,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
@@ -76,8 +77,34 @@
                                                    Foreground="White" FontSize="10" FontWeight="SemiBold" />
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding ReleaseDate, StringFormat=d}"
-                                           Opacity="0.6" VerticalAlignment="Center" />
+                                <!-- Downloaded-and-ready-to-flash indicator: a small green
+                                     checkmark badge, reusing the same check glyph geometry
+                                     as the app's CheckBox style (Themes/Controls.xaml) so it
+                                     reads as the same "checked" affordance. Stays visible for
+                                     an entry regardless of current selection, since
+                                     SoftwareViewModel caches downloads per entry rather than
+                                     clearing them when the selection moves elsewhere. -->
+                                <Border Grid.Column="1" Width="16" Height="16" CornerRadius="8"
+                                        Background="{StaticResource Brush.Success}"
+                                        Margin="8,0,0,0" VerticalAlignment="Center"
+                                        ToolTip="{Binding Source={x:Static loc:Strings.Instance}, Path=SoftwareDownloadedTooltip}">
+                                    <Border.Style>
+                                        <Style TargetType="{x:Type Border}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDownloaded}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Path Data="M1,4.2 L4,7 L9,1" Stroke="White" StrokeThickness="1.6"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Stretch="Uniform" Width="9" Height="7"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding ReleaseDate, StringFormat=d}"
+                                           Margin="8,0,0,0" Opacity="0.6" VerticalAlignment="Center" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

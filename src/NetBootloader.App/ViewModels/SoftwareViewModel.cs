@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,11 @@ public sealed partial class SoftwareViewModel : ObservableObject
 {
     private readonly ISoftwareCatalogClient _catalogClient;
 
+    // Keyed by SoftwareInfo.Name. Downloads survive moving the selection away and back -
+    // and a catalog refresh - so the user doesn't have to re-download something they
+    // already fetched just because they looked at something else in between.
+    private readonly Dictionary<string, string> _downloadedHexByName = new();
+
     public SoftwareViewModel(ISoftwareCatalogClient catalogClient)
     {
         _catalogClient = catalogClient;
@@ -30,11 +36,11 @@ public sealed partial class SoftwareViewModel : ObservableObject
         _ = LoadAvailableSoftwareCommand.ExecuteAsync(null);
     }
 
-    public ObservableCollection<SoftwareInfo> AvailableSoftware { get; } = new();
+    public ObservableCollection<SoftwareCatalogEntry> AvailableSoftware { get; } = new();
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadSoftwareCommand))]
-    private SoftwareInfo? _selectedSoftware;
+    private SoftwareCatalogEntry? _selectedSoftware;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(LoadAvailableSoftwareCommand))]
@@ -57,17 +63,25 @@ public sealed partial class SoftwareViewModel : ObservableObject
     private bool _isFlashing;
 
     /// <summary>
-    /// Plaintext HEX decrypted from the last successful download, kept in memory only -
-    /// never written to disk, the same guarantee a local .tmfw package gets right before
-    /// flashing. Null until a download succeeds; cleared whenever the selection changes, so
-    /// a stale package can't get flashed under a different selection's name.
+    /// Plaintext HEX for the currently selected entry, decrypted in memory only - never
+    /// written to disk, the same guarantee a local .tmfw package gets right before
+    /// flashing. Null unless the selected entry has been downloaded (this session, via
+    /// <see cref="_downloadedHexByName"/>).
     /// </summary>
     public string? DownloadedHexContent { get; private set; }
 
-    partial void OnSelectedSoftwareChanged(SoftwareInfo? value)
+    partial void OnSelectedSoftwareChanged(SoftwareCatalogEntry? value)
     {
-        DownloadedHexContent = null;
-        DownloadedLabel = null;
+        if (value is not null && _downloadedHexByName.TryGetValue(value.Name, out var cachedHexContent))
+        {
+            DownloadedHexContent = cachedHexContent;
+            DownloadedLabel = Strings.Instance.StatusDownloadComplete(value.Name);
+        }
+        else
+        {
+            DownloadedHexContent = null;
+            DownloadedLabel = null;
+        }
     }
 
     private bool CanLoadAvailableSoftware() => !IsLoadingCatalog;
@@ -80,15 +94,18 @@ public sealed partial class SoftwareViewModel : ObservableObject
         try
         {
             var software = await _catalogClient.GetAvailableSoftwareAsync();
-            var previouslySelected = SelectedSoftware?.Name;
+            var previouslySelectedName = SelectedSoftware?.Name;
 
             AvailableSoftware.Clear();
             foreach (var item in software)
             {
-                AvailableSoftware.Add(item);
+                AvailableSoftware.Add(new SoftwareCatalogEntry(item)
+                {
+                    IsDownloaded = _downloadedHexByName.ContainsKey(item.Name),
+                });
             }
 
-            SelectedSoftware = AvailableSoftware.FirstOrDefault(item => item.Name == previouslySelected)
+            SelectedSoftware = AvailableSoftware.FirstOrDefault(entry => entry.Name == previouslySelectedName)
                 ?? AvailableSoftware.FirstOrDefault();
         }
         catch (HttpRequestException ex)
@@ -108,21 +125,25 @@ public sealed partial class SoftwareViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanDownloadSoftware))]
     private async Task DownloadSoftwareAsync()
     {
-        var software = SelectedSoftware!;
+        var entry = SelectedSoftware!;
         IsDownloading = true;
 
         try
         {
-            DownloadedHexContent = await _catalogClient.DownloadAndDecryptAsync(software.Name);
-            DownloadedLabel = Strings.Instance.StatusDownloadComplete(software.Name);
+            var hexContent = await _catalogClient.DownloadAndDecryptAsync(entry.Name);
+            _downloadedHexByName[entry.Name] = hexContent;
+            entry.IsDownloaded = true;
+            DownloadedHexContent = hexContent;
+            DownloadedLabel = Strings.Instance.StatusDownloadComplete(entry.Name);
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidDataException)
         {
-            DownloadedHexContent = null;
-            DownloadedLabel = null;
+            // Deliberately leaves _downloadedHexByName/DownloadedHexContent/entry.IsDownloaded
+            // untouched: a failed re-download attempt shouldn't invalidate firmware that's
+            // already sitting decrypted in memory from an earlier successful one.
             MessageDialog.ShowError(
                 Strings.Instance.ErrorDialogTitle,
-                Strings.Instance.StatusDownloadFailedMessage(software.Name, ex.Message));
+                Strings.Instance.StatusDownloadFailedMessage(entry.Name, ex.Message));
         }
         finally
         {

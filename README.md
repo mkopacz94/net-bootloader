@@ -60,21 +60,26 @@ method names were kept close to the original so the two can be cross-referenced.
     picker, checksum/reset options.
   - `ViewModels/FlashLogViewModel` + `Views/FlashLogView` - progress bar,
     status text, live packet log.
-  - `ViewModels/SoftwareViewModel` + `Views/SoftwareView` - the available
-    software catalog: a themed `ListBox` (rounded selection to match
-    `ComboBoxItem`'s style, since no shared `ListBox` style existed yet)
-    listing `AvailableSoftware` with a BETA badge and release date per row,
-    `SelectedSoftware`, and Refresh/Download buttons driving
-    `NetBootloader.Core.Api.SoftwareCatalogClient` (catalog auto-loads on
-    construction, best-effort - an unreachable server just leaves the list
-    empty rather than blocking the window). A successful download decrypts
-    its package into `DownloadedHexContent`, an in-memory-only property;
-    picking different software clears it so a stale package can't get
-    flashed under the new selection's name. `IsFlashing` is set from the
-    outside (by `MainViewModel`, see below) rather than read from it, so
-    a download can't start mid-flash and overwrite `DownloadedHexContent`
-    underneath the in-flight `FlashAsync` call. The API's base address is
-    `ApiSettings.BaseUrl` - edit that constant to point at your deployment.
+  - `ViewModels/SoftwareViewModel` + `ViewModels/SoftwareCatalogEntry` +
+    `Views/SoftwareView` - the available software catalog: a themed
+    `ListBox` (rounded selection to match `ComboBoxItem`'s style, since no
+    shared `ListBox` style existed yet) listing `AvailableSoftware` - each
+    row a `SoftwareCatalogEntry` wrapping the API's `SoftwareInfo` plus an
+    `IsDownloaded` flag - with a BETA badge, a green checkmark badge once
+    downloaded, and release date, plus `SelectedSoftware` and
+    Refresh/Download buttons driving `NetBootloader.Core.Api.SoftwareCatalogClient`
+    (catalog auto-loads on construction, best-effort - an unreachable
+    server just leaves the list empty rather than blocking the window). A
+    successful download decrypts its package into `DownloadedHexContent`
+    (in-memory only) and is cached by name in `_downloadedHexByName`, so
+    moving the selection away and back - or refreshing the catalog -
+    restores it instead of losing it; a failed re-download attempt leaves
+    an existing cached package alone rather than invalidating it.
+    `IsFlashing` is set from the outside (by `MainViewModel`, see below)
+    rather than read from it, so a download can't start mid-flash and
+    overwrite `DownloadedHexContent` underneath the in-flight `FlashAsync`
+    call. The API's base address is `ApiSettings.BaseUrl` - edit that
+    constant to point at your deployment.
   - `ViewModels/MainViewModel` - composition root: owns the four
     sub-viewmodels and the `Flash`/`Cancel` commands, since those are the
     only things that need data from more than one of them. `FlashAsync`
