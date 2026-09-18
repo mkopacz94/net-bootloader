@@ -23,14 +23,7 @@ namespace NetBootloader.App.ViewModels;
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject
 {
-    private readonly ISoftwareCatalogClient _softwareCatalogClient;
     private CancellationTokenSource? _cancellationSource;
-
-    // Plaintext HEX decrypted from a downloaded package, kept in memory only - never
-    // written to disk, the same guarantee a local .tmfw package gets right before
-    // flashing. Non-null exactly when the currently selected software was successfully
-    // downloaded and takes precedence over Firmware.HexFilePath as the flash source.
-    private string? _downloadedHexContent;
 
     public MainViewModel() : this(new SoftwareCatalogClient(new HttpClient { BaseAddress = new Uri(ApiSettings.BaseUrl) }))
     {
@@ -38,22 +31,17 @@ public sealed partial class MainViewModel : ObservableObject
 
     internal MainViewModel(ISoftwareCatalogClient softwareCatalogClient)
     {
-        _softwareCatalogClient = softwareCatalogClient;
-
         Connection = new ConnectionViewModel();
         Firmware = new FirmwareViewModel();
         Log = new FlashLogViewModel();
+        Software = new SoftwareViewModel(softwareCatalogClient);
 
         // CanFlash depends on properties of the child viewmodels, which the source
         // generator can't wire up automatically (NotifyCanExecuteChangedFor only
-        // covers properties on this class) - so re-check on any change to either.
+        // covers properties on this class) - so re-check on any change to any of them.
         Connection.PropertyChanged += (_, _) => FlashCommand.NotifyCanExecuteChanged();
         Firmware.PropertyChanged += (_, _) => FlashCommand.NotifyCanExecuteChanged();
-
-        // Best-effort: a server that's unreachable at startup just leaves the catalog
-        // empty rather than blocking the window from opening - LoadAvailableSoftwareAsync
-        // already reports the failure via the log/dialog.
-        _ = LoadAvailableSoftwareCommand.ExecuteAsync(null);
+        Software.PropertyChanged += (_, _) => FlashCommand.NotifyCanExecuteChanged();
     }
 
     public ConnectionViewModel Connection { get; }
@@ -61,6 +49,8 @@ public sealed partial class MainViewModel : ObservableObject
     public FirmwareViewModel Firmware { get; }
 
     public FlashLogViewModel Log { get; }
+
+    public SoftwareViewModel Software { get; }
 
     public ObservableCollection<LanguageOption> AvailableLanguages { get; } = new()
     {
@@ -93,112 +83,20 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(FlashCommand))]
     [NotifyCanExecuteChangedFor(nameof(CancelCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DownloadSoftwareCommand))]
     private bool _isBusy;
 
-    // ----- Software download -----
-
-    public ObservableCollection<SoftwareInfo> AvailableSoftware { get; } = new();
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DownloadSoftwareCommand))]
-    private SoftwareInfo? _selectedSoftware;
-
-    [ObservableProperty]
-    private bool _isLoadingSoftwareCatalog;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(FlashCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DownloadSoftwareCommand))]
-    private bool _isDownloadingSoftware;
-
-    /// <summary>Name/version of the software currently held decrypted in memory, or null if none.</summary>
-    [ObservableProperty]
-    private string? _downloadedSoftwareLabel;
-
-    partial void OnSelectedSoftwareChanged(SoftwareInfo? value)
-    {
-        // A previously downloaded package no longer matches the current selection once
-        // the user picks something else - drop it rather than silently flashing the
-        // wrong firmware under the new selection's name.
-        _downloadedHexContent = null;
-        DownloadedSoftwareLabel = null;
-        FlashCommand.NotifyCanExecuteChanged();
-    }
-
-    [RelayCommand]
-    private async Task LoadAvailableSoftwareAsync()
-    {
-        IsLoadingSoftwareCatalog = true;
-
-        try
-        {
-            var software = await _softwareCatalogClient.GetAvailableSoftwareAsync();
-            var previouslySelected = SelectedSoftware?.Name;
-
-            AvailableSoftware.Clear();
-            foreach (var item in software)
-            {
-                AvailableSoftware.Add(item);
-            }
-
-            SelectedSoftware = AvailableSoftware.FirstOrDefault(item => item.Name == previouslySelected)
-                ?? AvailableSoftware.FirstOrDefault();
-        }
-        catch (HttpRequestException ex)
-        {
-            Log.SetStatus(strings => strings.StatusConnectionError(ex.Message));
-            MessageDialog.ShowError(Strings.Instance.ErrorDialogTitle, Strings.Instance.StatusConnectionError(ex.Message));
-        }
-        finally
-        {
-            IsLoadingSoftwareCatalog = false;
-        }
-    }
-
-    // !IsBusy too: downloading while a flash is in progress could overwrite
-    // _downloadedHexContent underneath the in-flight FlashAsync call.
-    private bool CanDownloadSoftware() => !IsBusy && !IsDownloadingSoftware && SelectedSoftware is not null;
-
-    [RelayCommand(CanExecute = nameof(CanDownloadSoftware))]
-    private async Task DownloadSoftwareAsync()
-    {
-        var software = SelectedSoftware!;
-        IsDownloadingSoftware = true;
-        Log.SetStatus(strings => strings.StatusDownloadingPackage(software.Name));
-
-        try
-        {
-            _downloadedHexContent = await _softwareCatalogClient.DownloadAndDecryptAsync(software.Name);
-            DownloadedSoftwareLabel = $"{software.Name} {software.Version}";
-            Log.SetStatus(strings => strings.StatusDownloadComplete(software.Name));
-        }
-        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException)
-        {
-            _downloadedHexContent = null;
-            DownloadedSoftwareLabel = null;
-            Log.SetStatus(strings => strings.StatusDownloadFailed);
-            MessageDialog.ShowError(
-                Strings.Instance.ErrorDialogTitle,
-                Strings.Instance.StatusDownloadFailedMessage(software.Name, ex.Message));
-        }
-        finally
-        {
-            IsDownloadingSoftware = false;
-            FlashCommand.NotifyCanExecuteChanged();
-        }
-    }
+    partial void OnIsBusyChanged(bool value) => Software.IsFlashing = value;
 
     // ----- Flashing -----
 
     private bool CanFlash() =>
         !IsBusy
-        && !IsDownloadingSoftware
+        && !Software.IsDownloading
         && !string.IsNullOrWhiteSpace(Connection.SelectedPort)
         && HasFirmwareToFlash();
 
     private bool HasFirmwareToFlash() =>
-        _downloadedHexContent is not null
+        Software.DownloadedHexContent is not null
         || (!string.IsNullOrWhiteSpace(Firmware.HexFilePath)
             && File.Exists(Firmware.HexFilePath)
             && string.Equals(Path.GetExtension(Firmware.HexFilePath), ".tmfw", StringComparison.OrdinalIgnoreCase));
@@ -259,8 +157,8 @@ public sealed partial class MainViewModel : ObservableObject
         // no data in this device's flash range (InvalidOperationException).
         catch (Exception ex) when (ex is InvalidDataException or FormatException or InvalidOperationException)
         {
-            var fileName = _downloadedHexContent is not null
-                ? DownloadedSoftwareLabel ?? Strings.Instance.SelectedFileFallback
+            var fileName = Software.DownloadedHexContent is not null
+                ? Software.DownloadedLabel ?? Strings.Instance.SelectedFileFallback
                 : string.IsNullOrEmpty(Firmware.HexFilePath)
                     ? Strings.Instance.SelectedFileFallback
                     : $"\"{Path.GetFileName(Firmware.HexFilePath)}\"";
@@ -303,9 +201,9 @@ public sealed partial class MainViewModel : ObservableObject
     /// <exception cref="InvalidDataException">If the local file's extension isn't <c>.tmfw</c>.</exception>
     private async Task<string> LoadHexContentAsync(CancellationToken cancellationToken)
     {
-        if (_downloadedHexContent is not null)
+        if (Software.DownloadedHexContent is not null)
         {
-            return _downloadedHexContent;
+            return Software.DownloadedHexContent;
         }
 
         var filePath = Firmware.HexFilePath!;

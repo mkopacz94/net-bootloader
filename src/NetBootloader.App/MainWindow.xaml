@@ -44,43 +44,7 @@
 
             <views:ConnectionView DataContext="{Binding Connection}" Margin="0,0,0,16" />
 
-            <!-- Bound straight to MainViewModel (not a child view/viewmodel) since it owns
-                 the catalog fetch/download state directly - downloaded firmware feeds the
-                 same Flash command below as a locally browsed .tmfw file. -->
-            <GroupBox Header="{Binding Source={x:Static loc:Strings.Instance}, Path=SoftwareHeader}" Margin="0,0,0,16">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableSoftware}"
-                                  SelectedItem="{Binding SelectedSoftware}"
-                                  VerticalAlignment="Center">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock>
-                                        <TextBlock.Text>
-                                            <MultiBinding StringFormat="{}{0} {1}">
-                                                <Binding Path="Name" />
-                                                <Binding Path="Version" />
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                        <Button Grid.Column="1" Content="{Binding Source={x:Static loc:Strings.Instance}, Path=RefreshButton}"
-                                Command="{Binding LoadAvailableSoftwareCommand}"
-                                Margin="6,0,0,0" Padding="8,2" />
-                        <Button Grid.Column="2" Content="{Binding Source={x:Static loc:Strings.Instance}, Path=DownloadButton}"
-                                Command="{Binding DownloadSoftwareCommand}"
-                                Margin="6,0,0,0" Padding="8,2" />
-                    </Grid>
-                    <TextBlock Text="{Binding DownloadedSoftwareLabel}" Margin="0,8,0,0" Opacity="0.7" />
-                </StackPanel>
-            </GroupBox>
+            <views:SoftwareView DataContext="{Binding Software}" Margin="0,0,0,16" />
 
             <views:FirmwareView DataContext="{Binding Firmware}" Margin="0,0,0,16" />
 

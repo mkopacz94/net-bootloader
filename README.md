@@ -60,23 +60,28 @@ method names were kept close to the original so the two can be cross-referenced.
     picker, checksum/reset options.
   - `ViewModels/FlashLogViewModel` + `Views/FlashLogView` - progress bar,
     status text, live packet log.
-  - `ViewModels/MainViewModel` - composition root: owns the three
-    sub-viewmodels and the `Flash`/`Cancel` commands, since those are the
-    only things that need data from more than one of them. Also owns
-    software download directly (not a fourth sub-viewmodel, since nothing
-    else needs its state): `AvailableSoftware`/`SelectedSoftware` plus
-    `LoadAvailableSoftwareCommand`/`DownloadSoftwareCommand` drive
+  - `ViewModels/SoftwareViewModel` + `Views/SoftwareView` - the available
+    software catalog: a themed `ListBox` (rounded selection to match
+    `ComboBoxItem`'s style, since no shared `ListBox` style existed yet)
+    listing `AvailableSoftware` with a BETA badge and release date per row,
+    `SelectedSoftware`, and Refresh/Download buttons driving
     `NetBootloader.Core.Api.SoftwareCatalogClient` (catalog auto-loads on
-    startup, best-effort). A successful download decrypts its package into
-    an in-memory-only field that `FlashAsync` prefers over
-    `Firmware.HexFilePath` when both are set, so `CanFlash` accepts either
-    source; picking different software drops any previously downloaded
-    package so a stale one can't get flashed under the new selection's
-    name. The API's base address is `ApiSettings.BaseUrl` - edit that
-    constant to point at your deployment.
-  - `MainWindow.xaml` lays the views out (plus a `Software` `GroupBox`
-    bound directly to `MainViewModel` for the download picker/buttons) and
-    binds the action buttons.
+    construction, best-effort - an unreachable server just leaves the list
+    empty rather than blocking the window). A successful download decrypts
+    its package into `DownloadedHexContent`, an in-memory-only property;
+    picking different software clears it so a stale package can't get
+    flashed under the new selection's name. `IsFlashing` is set from the
+    outside (by `MainViewModel`, see below) rather than read from it, so
+    a download can't start mid-flash and overwrite `DownloadedHexContent`
+    underneath the in-flight `FlashAsync` call. The API's base address is
+    `ApiSettings.BaseUrl` - edit that constant to point at your deployment.
+  - `ViewModels/MainViewModel` - composition root: owns the four
+    sub-viewmodels and the `Flash`/`Cancel` commands, since those are the
+    only things that need data from more than one of them. `FlashAsync`
+    prefers `Software.DownloadedHexContent` over `Firmware.HexFilePath`
+    when both are set, so `CanFlash` accepts either source; it also mirrors
+    its own `IsBusy` onto `Software.IsFlashing` (see above).
+  - `MainWindow.xaml` lays the four views out and binds the action buttons.
   - `Themes/Colors.xaml` + `Themes/Controls.xaml` - the app's visual theme:
     a light palette (blue `Primary`/pink `Secondary` accents, both with
     `.MouseOver`/`.Pressed` variants, plus neutrals for background/surface/
