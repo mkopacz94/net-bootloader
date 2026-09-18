@@ -38,6 +38,16 @@ method names were kept close to the original so the two can be cross-referenced.
     workflow from mcbootflash's CLI (`__main__.py`), as an awaitable
     operation with `IProgress<FlashProgressReport>` support and
     cancellation, for driving a UI.
+  - `Api/` - `ISoftwareCatalogClient`/`SoftwareCatalogClient`, an `HttpClient`
+    wrapper for a companion ASP.NET Core software-download API
+    (`HexController`): `GetAvailableSoftwareAsync` lists `SoftwareInfo`
+    entries from `GET api/Hex/available-devices`; `DownloadAndDecryptAsync`
+    fetches `GET api/Hex/{device}`, whose response carries a base64
+    ciphertext plus a base64 key - unlike a `.tmfw` package's baked-in
+    `DefaultKey`, the server mints a fresh random key per download - and
+    decrypts it in memory via `FirmwarePackage.Decrypt(data, key)`, the
+    same explicit-key overload `NetBootloader.HexPackager` round-trips
+    against in tests. The plaintext HEX this returns never touches disk.
 
 - **`src/NetBootloader.App`** - WPF shell, MVVM via
   [CommunityToolkit.Mvvm](https://learn.microsoft.com/dotnet/communitytoolkit/mvvm/)
@@ -52,9 +62,21 @@ method names were kept close to the original so the two can be cross-referenced.
     status text, live packet log.
   - `ViewModels/MainViewModel` - composition root: owns the three
     sub-viewmodels and the `Flash`/`Cancel` commands, since those are the
-    only things that need data from more than one of them.
-  - `MainWindow.xaml` just lays the three views out and binds the
-    action buttons.
+    only things that need data from more than one of them. Also owns
+    software download directly (not a fourth sub-viewmodel, since nothing
+    else needs its state): `AvailableSoftware`/`SelectedSoftware` plus
+    `LoadAvailableSoftwareCommand`/`DownloadSoftwareCommand` drive
+    `NetBootloader.Core.Api.SoftwareCatalogClient` (catalog auto-loads on
+    startup, best-effort). A successful download decrypts its package into
+    an in-memory-only field that `FlashAsync` prefers over
+    `Firmware.HexFilePath` when both are set, so `CanFlash` accepts either
+    source; picking different software drops any previously downloaded
+    package so a stale one can't get flashed under the new selection's
+    name. The API's base address is `ApiSettings.BaseUrl` - edit that
+    constant to point at your deployment.
+  - `MainWindow.xaml` lays the views out (plus a `Software` `GroupBox`
+    bound directly to `MainViewModel` for the download picker/buttons) and
+    binds the action buttons.
   - `Themes/Colors.xaml` + `Themes/Controls.xaml` - the app's visual theme:
     a light palette (blue `Primary`/pink `Secondary` accents, both with
     `.MouseOver`/`.Pressed` variants, plus neutrals for background/surface/
@@ -210,3 +232,13 @@ docs (`0x000E` -> `0x0007`).
 - `SerialBootloaderConnection`'s erase-timeout handling is basic: erasing a
   large memory area can take several seconds, so size the connection's
   `timeoutMilliseconds` accordingly before calling `EraseFlash`.
+- `SoftwareInfo`'s property names (`Name`/`Version`/`IsBeta`/`ReleaseDate`)
+  are inferred from the `HexController`/`Software` sample this was built
+  against, not from that model's actual source - if the real API serializes
+  different property names, `GetAvailableSoftwareAsync` will deserialize
+  those fields as their defaults instead of throwing, so a mismatch could
+  go unnoticed until the catalog list looks wrong. Confirm against the real
+  API and adjust `SoftwareInfo` if needed. `ApiSettings.BaseUrl` is a
+  hardcoded constant (no config file/environment variable) - also
+  deliberately minimal for now, swap it for real configuration before
+  shipping to more than one environment.

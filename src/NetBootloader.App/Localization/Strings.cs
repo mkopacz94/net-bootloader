@@ -61,6 +61,8 @@ public sealed class Strings : INotifyPropertyChanged
     public string RefreshButton => T(nameof(RefreshButton));
     public string BaudRateLabel => T(nameof(BaudRateLabel));
     public string TimeoutLabel => T(nameof(TimeoutLabel));
+    public string SoftwareHeader => T(nameof(SoftwareHeader));
+    public string DownloadButton => T(nameof(DownloadButton));
     public string FirmwareHeader => T(nameof(FirmwareHeader));
     public string BrowseButton => T(nameof(BrowseButton));
     public string VerifyChecksumOption => T(nameof(VerifyChecksumOption));
@@ -82,12 +84,15 @@ public sealed class Strings : INotifyPropertyChanged
     public string StatusInvalidFirmwareFile => T(nameof(StatusInvalidFirmwareFile));
     public string StatusVerifyFailed => T(nameof(StatusVerifyFailed));
     public string StatusDecryptingPackage => T(nameof(StatusDecryptingPackage));
+    public string StatusDownloadFailed => T(nameof(StatusDownloadFailed));
 
     public string StatusConnectingTo(string port) => Format(nameof(StatusConnectingTo), port);
     public string StatusErasing(string bytesDone, string bytesTotal) => Format(nameof(StatusErasing), bytesDone, bytesTotal);
     public string StatusWriting(string bytesDone, string bytesTotal) => Format(nameof(StatusWriting), bytesDone, bytesTotal);
     public string StatusError(string message) => Format(nameof(StatusError), message);
     public string StatusConnectionError(string message) => Format(nameof(StatusConnectionError), message);
+    public string StatusDownloadingPackage(string name) => Format(nameof(StatusDownloadingPackage), name);
+    public string StatusDownloadComplete(string name) => Format(nameof(StatusDownloadComplete), name);
 
     // ----- Messages -----
 
@@ -103,6 +108,8 @@ public sealed class Strings : INotifyPropertyChanged
     public string InvalidFirmwareDialogMessage(string fileName, string details) =>
         Format(nameof(InvalidFirmwareDialogMessage), fileName, details);
     public string SelectedFileFallback => T(nameof(SelectedFileFallback));
+    public string StatusDownloadFailedMessage(string name, string details) =>
+        Format(nameof(StatusDownloadFailedMessage), name, details);
 
     /// <summary>
     /// Generic error-dialog title, shared by every failure that doesn't need its own
@@ -129,6 +136,8 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(RefreshButton)] = "Refresh",
             [nameof(BaudRateLabel)] = "Baud rate:",
             [nameof(TimeoutLabel)] = "Timeout (s):",
+            [nameof(SoftwareHeader)] = "Download software",
+            [nameof(DownloadButton)] = "Download",
             [nameof(FirmwareHeader)] = "Firmware",
             [nameof(BrowseButton)] = "Browse...",
             [nameof(VerifyChecksumOption)] = "Verify checksum after each write",
@@ -148,17 +157,21 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusInvalidFirmwareFile)] = "Error: the selected file isn't valid firmware.",
             [nameof(StatusVerifyFailed)] = "Error: flashing completed, but the bootloader reports no bootable application.",
             [nameof(StatusDecryptingPackage)] = "Decrypting firmware package in memory...",
+            [nameof(StatusDownloadFailed)] = "Error: the software package could not be downloaded.",
             [nameof(StatusConnectingTo)] = "Connecting to {0}...",
             [nameof(StatusErasing)] = "Erasing program memory... {0} / {1}",
             [nameof(StatusWriting)] = "Writing firmware... {0} / {1}",
             [nameof(StatusError)] = "Error: {0}",
             [nameof(StatusConnectionError)] = "Connection error: {0}",
+            [nameof(StatusDownloadingPackage)] = "Downloading {0}...",
+            [nameof(StatusDownloadComplete)] = "{0} downloaded and decrypted successfully.",
 
             [nameof(UnsupportedFirmwareFileType)] = "Unsupported firmware file type \"{0}\" - expected .tmfw.",
             [nameof(ValidationRangeError)] = "Enter a whole number from {0} to {1}.",
             [nameof(InvalidFirmwareDialogTitle)] = "Invalid firmware file",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} doesn't look like valid firmware.\n\n{1}",
             [nameof(SelectedFileFallback)] = "The selected file",
+            [nameof(StatusDownloadFailedMessage)] = "Couldn't download \"{0}\".\n\n{1}",
             [nameof(ErrorDialogTitle)] = "Error",
 
             [nameof(MessageFlashingSuccessTitle)] = "Flashing finished",
@@ -174,6 +187,8 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(RefreshButton)] = "Odśwież",
             [nameof(BaudRateLabel)] = "Prędkość transmisji:",
             [nameof(TimeoutLabel)] = "Limit czasu (s):",
+            [nameof(SoftwareHeader)] = "Pobierz oprogramowanie",
+            [nameof(DownloadButton)] = "Pobierz",
             [nameof(FirmwareHeader)] = "Oprogramowanie sprzętowe",
             [nameof(BrowseButton)] = "Przeglądaj...",
             [nameof(VerifyChecksumOption)] = "Weryfikuj sumę kontrolną po każdym zapisie",
@@ -193,17 +208,21 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusInvalidFirmwareFile)] = "Błąd: wybrany plik nie jest prawidłowym oprogramowaniem sprzętowym.",
             [nameof(StatusVerifyFailed)] = "Błąd: wgrywanie zakończone, ale bootloader nie wykrywa aplikacji startowej.",
             [nameof(StatusDecryptingPackage)] = "Odszyfrowywanie pakietu oprogramowania w pamięci...",
+            [nameof(StatusDownloadFailed)] = "Błąd: nie udało się pobrać pakietu oprogramowania.",
             [nameof(StatusConnectingTo)] = "Łączenie z {0}...",
             [nameof(StatusErasing)] = "Czyszczenie pamięci programu... {0} / {1}",
             [nameof(StatusWriting)] = "Wgrywanie oprogramowania... {0} / {1}",
             [nameof(StatusError)] = "Błąd: {0}",
             [nameof(StatusConnectionError)] = "Błąd połączenia: {0}",
+            [nameof(StatusDownloadingPackage)] = "Pobieranie {0}...",
+            [nameof(StatusDownloadComplete)] = "{0} pobrano i odszyfrowano pomyślnie.",
 
             [nameof(UnsupportedFirmwareFileType)] = "Nieobsługiwany typ pliku oprogramowania \"{0}\" - oczekiwano .tmfw.",
             [nameof(ValidationRangeError)] = "Wprowadź liczbę całkowitą od {0} do {1}.",
             [nameof(InvalidFirmwareDialogTitle)] = "Nieprawidłowy plik oprogramowania",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} nie wygląda na prawidłowe oprogramowanie sprzętowe.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Wybrany plik",
+            [nameof(StatusDownloadFailedMessage)] = "Nie udało się pobrać \"{0}\".\n\n{1}",
             [nameof(ErrorDialogTitle)] = "Błąd",
 
             [nameof(MessageFlashingSuccessTitle)] = "Wgrywanie zakończone",
@@ -219,6 +238,8 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(RefreshButton)] = "Actualiser",
             [nameof(BaudRateLabel)] = "Vitesse de transmission :",
             [nameof(TimeoutLabel)] = "Délai d'attente (s) :",
+            [nameof(SoftwareHeader)] = "Télécharger le logiciel",
+            [nameof(DownloadButton)] = "Télécharger",
             [nameof(FirmwareHeader)] = "Micrologiciel",
             [nameof(BrowseButton)] = "Parcourir...",
             [nameof(VerifyChecksumOption)] = "Vérifier la somme de contrôle après chaque écriture",
@@ -238,17 +259,21 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusInvalidFirmwareFile)] = "Erreur : le fichier sélectionné n'est pas un micrologiciel valide.",
             [nameof(StatusVerifyFailed)] = "Erreur : le chargement est terminé, mais le bootloader ne détecte aucune application démarrable.",
             [nameof(StatusDecryptingPackage)] = "Déchiffrement du pack de micrologiciel en mémoire...",
+            [nameof(StatusDownloadFailed)] = "Erreur : le pack logiciel n'a pas pu être téléchargé.",
             [nameof(StatusConnectingTo)] = "Connexion à {0}...",
             [nameof(StatusErasing)] = "Effacement de la mémoire programme... {0} / {1}",
             [nameof(StatusWriting)] = "Écriture du micrologiciel... {0} / {1}",
             [nameof(StatusError)] = "Erreur : {0}",
             [nameof(StatusConnectionError)] = "Erreur de connexion : {0}",
+            [nameof(StatusDownloadingPackage)] = "Téléchargement de {0}...",
+            [nameof(StatusDownloadComplete)] = "{0} téléchargé et déchiffré avec succès.",
 
             [nameof(UnsupportedFirmwareFileType)] = "Type de fichier de micrologiciel non pris en charge « {0} » - .tmfw attendu.",
             [nameof(ValidationRangeError)] = "Entrez un nombre entier compris entre {0} et {1}.",
             [nameof(InvalidFirmwareDialogTitle)] = "Fichier de micrologiciel invalide",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} ne ressemble pas à un micrologiciel valide.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Le fichier sélectionné",
+            [nameof(StatusDownloadFailedMessage)] = "Impossible de télécharger « {0} ».\n\n{1}",
             [nameof(ErrorDialogTitle)] = "Erreur",
 
             [nameof(MessageFlashingSuccessTitle)] = "Chargement terminé",
@@ -264,6 +289,8 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(RefreshButton)] = "Aktualisieren",
             [nameof(BaudRateLabel)] = "Baudrate:",
             [nameof(TimeoutLabel)] = "Zeitlimit (s):",
+            [nameof(SoftwareHeader)] = "Software herunterladen",
+            [nameof(DownloadButton)] = "Herunterladen",
             [nameof(FirmwareHeader)] = "Firmware",
             [nameof(BrowseButton)] = "Durchsuchen...",
             [nameof(VerifyChecksumOption)] = "Prüfsumme nach jedem Schreibvorgang überprüfen",
@@ -283,17 +310,21 @@ public sealed class Strings : INotifyPropertyChanged
             [nameof(StatusInvalidFirmwareFile)] = "Fehler: Die ausgewählte Datei ist keine gültige Firmware.",
             [nameof(StatusVerifyFailed)] = "Fehler: Das Flashen wurde abgeschlossen, aber der Bootloader erkennt keine startfähige Anwendung.",
             [nameof(StatusDecryptingPackage)] = "Firmware-Paket wird im Speicher entschlüsselt...",
+            [nameof(StatusDownloadFailed)] = "Fehler: Das Softwarepaket konnte nicht heruntergeladen werden.",
             [nameof(StatusConnectingTo)] = "Verbindung zu {0} wird hergestellt...",
             [nameof(StatusErasing)] = "Programmspeicher wird gelöscht... {0} / {1}",
             [nameof(StatusWriting)] = "Firmware wird geschrieben... {0} / {1}",
             [nameof(StatusError)] = "Fehler: {0}",
             [nameof(StatusConnectionError)] = "Verbindungsfehler: {0}",
+            [nameof(StatusDownloadingPackage)] = "{0} wird heruntergeladen...",
+            [nameof(StatusDownloadComplete)] = "{0} erfolgreich heruntergeladen und entschlüsselt.",
 
             [nameof(UnsupportedFirmwareFileType)] = "Nicht unterstützter Firmware-Dateityp \"{0}\" - .tmfw erwartet.",
             [nameof(ValidationRangeError)] = "Geben Sie eine ganze Zahl von {0} bis {1} ein.",
             [nameof(InvalidFirmwareDialogTitle)] = "Ungültige Firmware-Datei",
             [nameof(InvalidFirmwareDialogMessage)] = "{0} sieht nicht wie gültige Firmware aus.\n\n{1}",
             [nameof(SelectedFileFallback)] = "Die ausgewählte Datei",
+            [nameof(StatusDownloadFailedMessage)] = "„{0}“ konnte nicht heruntergeladen werden.\n\n{1}",
             [nameof(ErrorDialogTitle)] = "Fehler",
 
             [nameof(MessageFlashingSuccessTitle)] = "Flashen abgeschlossen",
